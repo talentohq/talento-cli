@@ -1,0 +1,12 @@
+title = "talento-cli gitleaks policy"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "The stable-gate test uses a public, non-secret fixture certificate subject."
+condition = "AND"
+targetRules = ["generic-api-key"]
+paths = ['''^scripts/test-check-stable-gates\.sh$''']
+regexTarget = "line"
+regexes = ['''TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER='CN=TalentoHQ Test' ''']

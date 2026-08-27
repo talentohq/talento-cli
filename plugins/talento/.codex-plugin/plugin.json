@@ -1,0 +1,28 @@
+{
+  "name": "talento",
+  "version": "0.1.0",
+  "description": "Use the local TalentoHQ CLI safely from Codex.",
+  "author": {
+    "name": "TalentoHQ",
+    "url": "https://talentohq.com"
+  },
+  "homepage": "https://talentohq.com",
+  "repository": "https://github.com/talentohq/talento-cli",
+  "license": "MIT",
+  "keywords": ["talento", "talentohq", "hr", "crm", "finance"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Talento",
+    "shortDescription": "Run TalentoHQ workflows through the local CLI.",
+    "longDescription": "The Talento plugin teaches Codex to discover the current profile's live capabilities and invoke the local talento CLI without duplicating OAuth grants.",
+    "developerName": "TalentoHQ",
+    "category": "Productivity",
+    "capabilities": ["Write"],
+    "websiteURL": "https://talentohq.com",
+    "defaultPrompt": [
+      "Show what my Talento profile can do.",
+      "Summarize my pending work in Talento.",
+      "Help me complete this Talento workflow safely."
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "probe_contract_version": 1,
+  "probes": [
+    {"id": "authentication.non_hr", "kind": "authentication", "role": "employee", "expected": "authenticated"},
+    {"id": "tenant.company_selection", "kind": "tenant", "role": "external", "expected": "selected"},
+    {"id": "resource.read", "kind": "resource", "role": "admin", "expected": "success"},
+    {"id": "tool.read", "kind": "read", "role": "admin", "expected": "success"},
+    {"id": "write.immediate", "kind": "write", "role": "admin", "expected": "committed"},
+    {"id": "write.preview", "kind": "write", "role": "admin", "expected": "preview"},
+    {"id": "write.confirm", "kind": "write", "role": "admin", "expected": "committed"},
+    {"id": "write.expired_preview", "kind": "write", "role": "admin", "expected": "rejected"},
+    {"id": "write.approval_pending", "kind": "write", "role": "employee", "expected": "submitted_for_approval"},
+    {"id": "authorization.permission_denied", "kind": "authorization", "role": "employee", "expected": "denied"},
+    {"id": "authorization.module_disabled", "kind": "authorization", "role": "manager", "expected": "unavailable"},
+    {"id": "resolution.ambiguous_entity", "kind": "resolution", "role": "manager", "expected": "ambiguous"},
+    {"id": "response.truncation", "kind": "response", "role": "admin", "expected": "truncated"},
+    {"id": "response.server_failure", "kind": "response", "role": "admin", "expected": "error"},
+    {"id": "tenant.cross_tenant_read", "kind": "tenant", "role": "external", "expected": "denied"},
+    {"id": "tenant.cross_tenant_resolve", "kind": "tenant", "role": "external", "expected": "denied"},
+    {"id": "tenant.cross_tenant_preview", "kind": "tenant", "role": "external", "expected": "denied"},
+    {"id": "tenant.cross_tenant_confirm", "kind": "tenant", "role": "external", "expected": "denied"},
+    {"id": "tenant.cross_tenant_mutation", "kind": "tenant", "role": "external", "expected": "denied"},
+    {"id": "skill.employee", "kind": "skill", "role": "employee", "expected": "passed"},
+    {"id": "skill.manager_hr", "kind": "skill", "role": "manager", "expected": "passed"},
+    {"id": "skill.sales", "kind": "skill", "role": "admin", "expected": "passed"},
+    {"id": "skill.finance", "kind": "skill", "role": "admin", "expected": "passed"},
+    {"id": "skill.external_user", "kind": "skill", "role": "external", "expected": "passed"}
+  ]
+}

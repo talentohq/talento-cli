@@ -1,0 +1,11 @@
+{
+  "contract_version": 1,
+  "role": "external",
+  "captured_at": null,
+  "snapshot_sha256": "b5b4443fed6da65641903ed260858c2c39968dd1025305897d0b9dcdf4339c56",
+  "tenant": "staging-company-b-selected",
+  "modules": ["finance"],
+  "representative_tools": ["list_invoices", "list_purchase_invoices", "list_providers"],
+  "representative_resources": [],
+  "release_evidence_required": true
+}

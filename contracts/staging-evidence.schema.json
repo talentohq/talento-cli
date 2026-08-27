@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://talentohq.com/schemas/cli-staging-evidence-v1.json",
+  "title": "Talento CLI stable-release staging evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["evidence_version", "captured_at", "snapshot_sha256", "probe_contract_sha256", "roles", "probes"],
+  "properties": {
+    "evidence_version": { "const": 1 },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "snapshot_sha256": { "$ref": "#/$defs/sha256" },
+    "probe_contract_sha256": { "$ref": "#/$defs/sha256" },
+    "roles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": { "$ref": "#/$defs/role_capture" }
+    },
+    "probes": {
+      "type": "array",
+      "minItems": 24,
+      "maxItems": 24,
+      "items": { "$ref": "#/$defs/probe" }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "availability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "expected", "actual"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "expected": { "const": "available" },
+        "actual": { "const": "available" }
+      }
+    },
+    "role_capture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "captured_at", "contract_sha256", "tenant", "modules", "tools", "resources"],
+      "properties": {
+        "role": { "enum": ["admin", "manager", "employee", "external"] },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        },
+        "contract_sha256": { "$ref": "#/$defs/sha256" },
+        "tenant": { "type": "string", "minLength": 1 },
+        "modules": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "tools": { "type": "array", "items": { "$ref": "#/$defs/availability" }, "uniqueItems": true },
+        "resources": { "type": "array", "items": { "$ref": "#/$defs/availability" }, "uniqueItems": true }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "role", "subject", "expected", "actual"],
+      "properties": {
+        "id": {
+          "enum": [
+            "authentication.non_hr",
+            "tenant.company_selection",
+            "resource.read",
+            "tool.read",
+            "write.immediate",
+            "write.preview",
+            "write.confirm",
+            "write.expired_preview",
+            "write.approval_pending",
+            "authorization.permission_denied",
+            "authorization.module_disabled",
+            "resolution.ambiguous_entity",
+            "response.truncation",
+            "response.server_failure",
+            "tenant.cross_tenant_read",
+            "tenant.cross_tenant_resolve",
+            "tenant.cross_tenant_preview",
+            "tenant.cross_tenant_confirm",
+            "tenant.cross_tenant_mutation",
+            "skill.employee",
+            "skill.manager_hr",
+            "skill.sales",
+            "skill.finance",
+            "skill.external_user"
+          ]
+        },
+        "kind": { "enum": ["authentication", "tenant", "resource", "read", "write", "authorization", "resolution", "response", "skill"] },
+        "role": { "enum": ["admin", "manager", "employee", "external"] },
+        "subject": { "type": "string", "minLength": 1 },
+        "expected": { "type": "string", "minLength": 1 },
+        "actual": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

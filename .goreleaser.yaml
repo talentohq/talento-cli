@@ -1,0 +1,160 @@
+version: 2
+
+project_name: talento
+
+metadata:
+  mod_timestamp: '{{ .CommitTimestamp }}'
+
+before:
+  hooks:
+    - go mod verify
+    - go test ./...
+    - go run ./cmd/schemagen -check
+    - sh -c '{{ if .IsSnapshot }}echo "Skipping Nix release stamp check for snapshot {{ .Version }}"{{ else }}scripts/stamp-nix-version.sh --check {{ .Version }}{{ end }}'
+    - go run ./cmd/packageextras --version {{ .Version }} --output release-extra --windows-publisher '{{ .Env.TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER }}'
+    - go run ./cmd/packagecompletions --output release-extra/completions
+
+builds:
+  - id: talento
+    main: ./cmd/talento
+    binary: talento
+    env:
+      - CGO_ENABLED=0
+    goos: [darwin, linux, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - >-
+        -s -w
+        -X github.com/talentohq/talento-cli/internal/buildinfo.Version={{ .Version }}
+        -X github.com/talentohq/talento-cli/internal/buildinfo.Commit={{ .Commit }}
+        -X github.com/talentohq/talento-cli/internal/buildinfo.Date={{ .CommitTimestamp }}
+        -X github.com/talentohq/talento-cli/internal/buildinfo.Source=release
+        -X github.com/talentohq/talento-cli/internal/buildinfo.MetadataFingerprint=talento-release-metadata:{{ .Version }}:{{ .Commit }}:{{ .CommitTimestamp }}:release
+        -X github.com/talentohq/talento-cli/internal/buildinfo.ReleasePublicKey={{ .Env.TALENTO_RELEASE_PUBLIC_KEY }}
+
+archives:
+  - id: archives
+    ids: [talento]
+    formats: [tar.gz]
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    name_template: talento_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files:
+      - LICENSE
+      - README.md
+      - skills/**/*
+      - plugins/*/skills/**/*
+      - src: release-extra/plugins/talento/.codex-plugin/plugin.json
+        dst: plugins/talento/.codex-plugin
+        strip_parent: true
+      - src: release-extra/plugins/claude-code/.claude-plugin/plugin.json
+        dst: plugins/claude-code/.claude-plugin
+        strip_parent: true
+      - src: release-extra/completions/*
+        dst: completions
+        strip_parent: true
+
+nfpms:
+  - id: linux-packages
+    ids: [talento]
+    package_name: talento
+    file_name_template: talento_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    vendor: TalentoHQ
+    homepage: https://talentohq.com
+    maintainer: TalentoHQ <support@talentohq.com>
+    description: Native command-line client for TalentoHQ
+    license: MIT
+    bindir: /usr/bin
+    formats: [deb, rpm, apk]
+    contents:
+      - src: LICENSE
+        dst: /usr/share/licenses/talento/LICENSE
+      - src: release-extra/completions/talento.bash
+        dst: /usr/share/bash-completion/completions/talento
+      - src: release-extra/completions/_talento
+        dst: /usr/share/zsh/site-functions/_talento
+      - src: release-extra/completions/talento.fish
+        dst: /usr/share/fish/vendor_completions.d/talento.fish
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+  extra_files:
+    - glob: release-extra/*.zip
+    - glob: release-extra/installers/install.sh
+    - glob: release-extra/installers/install.ps1
+
+sboms:
+  - id: archive-sboms
+    artifacts: archive
+    documents:
+      - '{{ .ArtifactName }}.spdx.json'
+
+signs:
+  - id: ed25519-checksums
+    cmd: go
+    signature: '${artifact}.sig'
+    args:
+      - run
+      - ./cmd/signchecksums
+      - --input
+      - '${artifact}'
+      - --output
+      - '${signature}'
+    artifacts: checksum
+  - id: sigstore-checksums
+    cmd: cosign
+    signature: '${artifact}.sigstore.json'
+    args:
+      - sign-blob
+      - '--bundle=${signature}'
+      - '${artifact}'
+      - --yes
+    artifacts: checksum
+
+homebrew_casks:
+  - name: talento
+    ids: [archives]
+    repository:
+      owner: talentohq
+      name: homebrew-tap
+      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
+    directory: Casks
+    homepage: https://talentohq.com
+    description: Native command-line client for TalentoHQ
+    license: MIT
+    binaries: [talento]
+
+scoops:
+  - name: talento
+    ids: [archives]
+    repository:
+      owner: talentohq
+      name: scoop-bucket
+      token: '{{ .Env.SCOOP_BUCKET_TOKEN }}'
+    homepage: https://talentohq.com
+    description: Native command-line client for TalentoHQ
+    license: MIT
+
+release:
+  github:
+    owner: talentohq
+    name: talento-cli
+  prerelease: auto
+  mode: append
+  extra_files:
+    - glob: release-extra/*.zip
+    - glob: release-extra/installers/install.sh
+    - glob: release-extra/installers/install.ps1
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^Merge'

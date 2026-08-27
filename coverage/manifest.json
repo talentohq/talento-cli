@@ -1,0 +1,1001 @@
+{
+  "manifest_version": 1,
+  "snapshot_version": 1,
+  "snapshot_sha256": "b5b4443fed6da65641903ed260858c2c39968dd1025305897d0b9dcdf4339c56",
+  "endpoint": "https://mcp.talentohq.com/mcp",
+  "tools": [
+    {
+      "tool": "auto_clock_ins",
+      "domain": "time",
+      "command": "auto-clock-ins",
+      "read_only": false
+    },
+    {
+      "tool": "list_absence_categories",
+      "domain": "absences",
+      "command": "categories",
+      "read_only": true
+    },
+    {
+      "tool": "list_absences",
+      "domain": "absences",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_clock_ins",
+      "domain": "time",
+      "command": "list-clock-ins",
+      "read_only": true
+    },
+    {
+      "tool": "list_competencies",
+      "domain": "skills",
+      "command": "list-competencies",
+      "read_only": true
+    },
+    {
+      "tool": "create_competency",
+      "domain": "skills",
+      "command": "create-competency",
+      "read_only": false
+    },
+    {
+      "tool": "get_competency",
+      "domain": "skills",
+      "command": "get-competency",
+      "read_only": true
+    },
+    {
+      "tool": "update_competency",
+      "domain": "skills",
+      "command": "update-competency",
+      "read_only": false
+    },
+    {
+      "tool": "toggle_competency",
+      "domain": "skills",
+      "command": "toggle-competency",
+      "read_only": false
+    },
+    {
+      "tool": "update_competency_value",
+      "domain": "skills",
+      "command": "update-competency-value",
+      "read_only": false
+    },
+    {
+      "tool": "update_competency_tier",
+      "domain": "skills",
+      "command": "update-competency-tier",
+      "read_only": false
+    },
+    {
+      "tool": "list_job_categories",
+      "domain": "people",
+      "command": "list-job-categories",
+      "read_only": true
+    },
+    {
+      "tool": "list_employees",
+      "domain": "people",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_employee_tasks",
+      "domain": "tasks",
+      "command": "list-employee-tasks",
+      "read_only": true
+    },
+    {
+      "tool": "list_expense_categories",
+      "domain": "expenses",
+      "command": "categories",
+      "read_only": true
+    },
+    {
+      "tool": "list_expenses",
+      "domain": "expenses",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_items",
+      "domain": "items",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_goals",
+      "domain": "goals",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_goal_comments",
+      "domain": "goals",
+      "command": "comments",
+      "read_only": true
+    },
+    {
+      "tool": "list_schedules",
+      "domain": "schedules",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_schedule_catalog",
+      "domain": "schedules",
+      "command": "catalog",
+      "read_only": true
+    },
+    {
+      "tool": "list_reschedules",
+      "domain": "schedules",
+      "command": "reschedules",
+      "read_only": true
+    },
+    {
+      "tool": "create_absence",
+      "domain": "absences",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "create_document",
+      "domain": "documents",
+      "command": "create-document",
+      "read_only": false
+    },
+    {
+      "tool": "list_document_categories",
+      "domain": "documents",
+      "command": "list-document-categories",
+      "read_only": true
+    },
+    {
+      "tool": "create_expense",
+      "domain": "expenses",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "create_item",
+      "domain": "items",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "create_goal",
+      "domain": "goals",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "create_goal_status_update",
+      "domain": "goals",
+      "command": "status-update",
+      "read_only": false
+    },
+    {
+      "tool": "create_clock_in",
+      "domain": "time",
+      "command": "create-clock-in",
+      "read_only": false
+    },
+    {
+      "tool": "create_reschedule",
+      "domain": "schedules",
+      "command": "reschedule-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_goal",
+      "domain": "goals",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "edit_item",
+      "domain": "items",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "get_employee_current_activity",
+      "domain": "time",
+      "command": "get-employee-current-activity",
+      "read_only": true
+    },
+    {
+      "tool": "get_employee_schedule",
+      "domain": "schedules",
+      "command": "employee",
+      "read_only": true
+    },
+    {
+      "tool": "get_task_todos",
+      "domain": "tasks",
+      "command": "get-task-todos",
+      "read_only": true
+    },
+    {
+      "tool": "manage_schedule",
+      "domain": "schedules",
+      "command": "manage",
+      "read_only": false
+    },
+    {
+      "tool": "start_activity",
+      "domain": "time",
+      "command": "start-activity",
+      "read_only": false
+    },
+    {
+      "tool": "stop_activity",
+      "domain": "time",
+      "command": "stop-activity",
+      "read_only": false
+    },
+    {
+      "tool": "swap_availabilities",
+      "domain": "schedules",
+      "command": "swap",
+      "read_only": false
+    },
+    {
+      "tool": "assign_schedule",
+      "domain": "schedules",
+      "command": "assign",
+      "read_only": false
+    },
+    {
+      "tool": "update_absence",
+      "domain": "absences",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "update_clock_in",
+      "domain": "time",
+      "command": "update-clock-in",
+      "read_only": false
+    },
+    {
+      "tool": "update_reschedule",
+      "domain": "schedules",
+      "command": "reschedule-update",
+      "read_only": false
+    },
+    {
+      "tool": "confirm_action",
+      "domain": "action",
+      "command": "confirm",
+      "read_only": false
+    },
+    {
+      "tool": "create_changelog",
+      "domain": "reports",
+      "command": "create-changelog",
+      "read_only": false
+    },
+    {
+      "tool": "list_skills",
+      "domain": "skills",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_employee_skills",
+      "domain": "skills",
+      "command": "employees",
+      "read_only": true
+    },
+    {
+      "tool": "list_appointments",
+      "domain": "appointments",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_appointment",
+      "domain": "appointments",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "manage_appointment",
+      "domain": "appointments",
+      "command": "manage",
+      "read_only": false
+    },
+    {
+      "tool": "create_appointment",
+      "domain": "appointments",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "list_appointment_slots",
+      "domain": "appointments",
+      "command": "slots",
+      "read_only": true
+    },
+    {
+      "tool": "list_trainings",
+      "domain": "trainings",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_training",
+      "domain": "trainings",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "create_training",
+      "domain": "trainings",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "update_training",
+      "domain": "trainings",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_training",
+      "domain": "trainings",
+      "command": "delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_topic",
+      "domain": "trainings",
+      "command": "create-topic",
+      "read_only": false
+    },
+    {
+      "tool": "update_topic",
+      "domain": "trainings",
+      "command": "update-topic",
+      "read_only": false
+    },
+    {
+      "tool": "delete_topic",
+      "domain": "trainings",
+      "command": "delete-topic",
+      "read_only": false
+    },
+    {
+      "tool": "create_lesson",
+      "domain": "trainings",
+      "command": "create-lesson",
+      "read_only": false
+    },
+    {
+      "tool": "update_lesson",
+      "domain": "trainings",
+      "command": "update-lesson",
+      "read_only": false
+    },
+    {
+      "tool": "delete_lesson",
+      "domain": "trainings",
+      "command": "delete-lesson",
+      "read_only": false
+    },
+    {
+      "tool": "create_segment",
+      "domain": "trainings",
+      "command": "create-segment",
+      "read_only": false
+    },
+    {
+      "tool": "update_segment",
+      "domain": "trainings",
+      "command": "update-segment",
+      "read_only": false
+    },
+    {
+      "tool": "delete_segment",
+      "domain": "trainings",
+      "command": "delete-segment",
+      "read_only": false
+    },
+    {
+      "tool": "submit_training_for_review",
+      "domain": "trainings",
+      "command": "submit-training-for-review",
+      "read_only": false
+    },
+    {
+      "tool": "request_training_changes",
+      "domain": "trainings",
+      "command": "request-training-changes",
+      "read_only": false
+    },
+    {
+      "tool": "publish_training",
+      "domain": "trainings",
+      "command": "publish-training",
+      "read_only": false
+    },
+    {
+      "tool": "archive_training",
+      "domain": "trainings",
+      "command": "archive-training",
+      "read_only": false
+    },
+    {
+      "tool": "duplicate_training_as_draft",
+      "domain": "trainings",
+      "command": "duplicate-training-as-draft",
+      "read_only": false
+    },
+    {
+      "tool": "list_onboardings",
+      "domain": "onboarding",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "update_boarding_action",
+      "domain": "onboarding",
+      "command": "action-update",
+      "read_only": false
+    },
+    {
+      "tool": "create_survey",
+      "domain": "surveys",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "create_evaluation",
+      "domain": "evaluations",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "list_surveys",
+      "domain": "surveys",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_survey_results",
+      "domain": "surveys",
+      "command": "results",
+      "read_only": true
+    },
+    {
+      "tool": "list_evaluations",
+      "domain": "evaluations",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_evaluation_results",
+      "domain": "evaluations",
+      "command": "results",
+      "read_only": true
+    },
+    {
+      "tool": "list_job_offers",
+      "domain": "recruitment",
+      "command": "offers",
+      "read_only": true
+    },
+    {
+      "tool": "create_job_offer",
+      "domain": "recruitment",
+      "command": "offer-create",
+      "read_only": false
+    },
+    {
+      "tool": "update_job_offer",
+      "domain": "recruitment",
+      "command": "offer-update",
+      "read_only": false
+    },
+    {
+      "tool": "create_onboarding_template",
+      "domain": "onboarding",
+      "command": "template-create",
+      "read_only": false
+    },
+    {
+      "tool": "update_onboarding_template",
+      "domain": "onboarding",
+      "command": "template-update",
+      "read_only": false
+    },
+    {
+      "tool": "list_candidates",
+      "domain": "recruitment",
+      "command": "candidates",
+      "read_only": true
+    },
+    {
+      "tool": "move_candidate",
+      "domain": "recruitment",
+      "command": "candidate-move",
+      "read_only": false
+    },
+    {
+      "tool": "rate_candidate",
+      "domain": "recruitment",
+      "command": "candidate-rate",
+      "read_only": false
+    },
+    {
+      "tool": "get_employee",
+      "domain": "people",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "create_task",
+      "domain": "tasks",
+      "command": "create-task",
+      "read_only": false
+    },
+    {
+      "tool": "update_task",
+      "domain": "tasks",
+      "command": "update-task",
+      "read_only": false
+    },
+    {
+      "tool": "list_personal_todos",
+      "domain": "todos",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "create_personal_todo",
+      "domain": "todos",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "update_personal_todo",
+      "domain": "todos",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_personal_todo",
+      "domain": "todos",
+      "command": "delete",
+      "read_only": false
+    },
+    {
+      "tool": "list_customers",
+      "domain": "customers",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_customer",
+      "domain": "customers",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "list_crm_custom_fields",
+      "domain": "crm",
+      "command": "list-crm-custom-fields",
+      "read_only": true
+    },
+    {
+      "tool": "create_crm_custom_field",
+      "domain": "crm",
+      "command": "create-crm-custom-field",
+      "read_only": false
+    },
+    {
+      "tool": "create_customer",
+      "domain": "customers",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_customer",
+      "domain": "customers",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "update_customer_stage",
+      "domain": "customers",
+      "command": "update-customer-stage",
+      "read_only": false
+    },
+    {
+      "tool": "list_customer_stage_categories",
+      "domain": "customers",
+      "command": "list-customer-stage-categories",
+      "read_only": true
+    },
+    {
+      "tool": "list_customer_stage_logs",
+      "domain": "customers",
+      "command": "list-customer-stage-logs",
+      "read_only": true
+    },
+    {
+      "tool": "list_contacts",
+      "domain": "contacts",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "create_contact",
+      "domain": "contacts",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_contact",
+      "domain": "contacts",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "list_leads",
+      "domain": "leads",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "create_lead",
+      "domain": "leads",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_lead",
+      "domain": "leads",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "convert_lead",
+      "domain": "leads",
+      "command": "convert",
+      "read_only": false
+    },
+    {
+      "tool": "list_lead_sources",
+      "domain": "leads",
+      "command": "list-lead-sources",
+      "read_only": true
+    },
+    {
+      "tool": "list_crm_action_queue",
+      "domain": "crm",
+      "command": "list-crm-action-queue",
+      "read_only": true
+    },
+    {
+      "tool": "summarize_customer",
+      "domain": "customers",
+      "command": "summarize-customer",
+      "read_only": true
+    },
+    {
+      "tool": "summarize_opportunity",
+      "domain": "opportunities",
+      "command": "summarize-opportunity",
+      "read_only": true
+    },
+    {
+      "tool": "list_assignments",
+      "domain": "crm",
+      "command": "list-assignments",
+      "read_only": true
+    },
+    {
+      "tool": "list_assignment_categories",
+      "domain": "crm",
+      "command": "list-assignment-categories",
+      "read_only": true
+    },
+    {
+      "tool": "create_assignment",
+      "domain": "crm",
+      "command": "create-assignment",
+      "read_only": false
+    },
+    {
+      "tool": "edit_assignment",
+      "domain": "crm",
+      "command": "edit-assignment",
+      "read_only": false
+    },
+    {
+      "tool": "list_providers",
+      "domain": "providers",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "create_provider",
+      "domain": "providers",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_provider",
+      "domain": "providers",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "list_invoices",
+      "domain": "invoices",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_invoice",
+      "domain": "invoices",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "create_invoice",
+      "domain": "invoices",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_invoice",
+      "domain": "invoices",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "send_invoice",
+      "domain": "invoices",
+      "command": "send",
+      "read_only": false
+    },
+    {
+      "tool": "reopen_invoice",
+      "domain": "invoices",
+      "command": "reopen",
+      "read_only": false
+    },
+    {
+      "tool": "list_purchase_orders",
+      "domain": "purchases",
+      "command": "list-purchase-orders",
+      "read_only": true
+    },
+    {
+      "tool": "get_purchase_order",
+      "domain": "purchases",
+      "command": "get-purchase-order",
+      "read_only": true
+    },
+    {
+      "tool": "create_purchase_order",
+      "domain": "purchases",
+      "command": "create-purchase-order",
+      "read_only": false
+    },
+    {
+      "tool": "edit_purchase_order",
+      "domain": "purchases",
+      "command": "edit-purchase-order",
+      "read_only": false
+    },
+    {
+      "tool": "transition_purchase_order",
+      "domain": "purchases",
+      "command": "transition-purchase-order",
+      "read_only": false
+    },
+    {
+      "tool": "list_purchase_invoices",
+      "domain": "purchases",
+      "command": "list-purchase-invoices",
+      "read_only": true
+    },
+    {
+      "tool": "get_purchase_invoice",
+      "domain": "purchases",
+      "command": "get-purchase-invoice",
+      "read_only": true
+    },
+    {
+      "tool": "create_purchase_invoice",
+      "domain": "purchases",
+      "command": "create-purchase-invoice",
+      "read_only": false
+    },
+    {
+      "tool": "edit_purchase_invoice",
+      "domain": "purchases",
+      "command": "edit-purchase-invoice",
+      "read_only": false
+    },
+    {
+      "tool": "list_opportunities",
+      "domain": "opportunities",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "get_opportunity",
+      "domain": "opportunities",
+      "command": "get",
+      "read_only": true
+    },
+    {
+      "tool": "create_opportunity",
+      "domain": "opportunities",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_opportunity",
+      "domain": "opportunities",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "change_opportunity_stage",
+      "domain": "opportunities",
+      "command": "change-opportunity-stage",
+      "read_only": false
+    },
+    {
+      "tool": "close_opportunity",
+      "domain": "opportunities",
+      "command": "close",
+      "read_only": false
+    },
+    {
+      "tool": "reopen_opportunity",
+      "domain": "opportunities",
+      "command": "reopen",
+      "read_only": false
+    },
+    {
+      "tool": "list_views",
+      "domain": "views",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "list_versions",
+      "domain": "views",
+      "command": "versions",
+      "read_only": true
+    },
+    {
+      "tool": "read_view",
+      "domain": "views",
+      "command": "read",
+      "read_only": true
+    },
+    {
+      "tool": "preview_view",
+      "domain": "views",
+      "command": "preview",
+      "read_only": true
+    },
+    {
+      "tool": "edit_view",
+      "domain": "views",
+      "command": "edit",
+      "read_only": false
+    },
+    {
+      "tool": "write_view",
+      "domain": "views",
+      "command": "write",
+      "read_only": false
+    },
+    {
+      "tool": "create_version",
+      "domain": "views",
+      "command": "version-create",
+      "read_only": false
+    }
+  ],
+  "resources": [
+    {
+      "resource": "employee",
+      "uri_template": "employee:///{employee_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "team",
+      "uri_template": "team:///{team_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "office",
+      "uri_template": "office:///{office_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "absence_category",
+      "uri_template": "absence_category:///{absence_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "job_category",
+      "uri_template": "job_category:///{job_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "working_category",
+      "uri_template": "working_category:///{working_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "contract_category",
+      "uri_template": "contract_category:///{contract_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "skill",
+      "uri_template": "skill:///{skill_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "absence",
+      "uri_template": "absence:///{absence_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "expense_category",
+      "uri_template": "expense_category:///{expense_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "expense",
+      "uri_template": "expense:///{expense_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "item_category",
+      "uri_template": "item_category:///{item_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "item",
+      "uri_template": "item:///{item_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "goal",
+      "uri_template": "goal:///{goal_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "task",
+      "uri_template": "task:///{task_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "task_category",
+      "uri_template": "task_category:///{task_category_id}",
+      "command": "resources read"
+    },
+    {
+      "resource": "todo_list",
+      "uri_template": "todo_list:///{todo_list_id}",
+      "command": "resources read"
+    }
+  ]
+}
