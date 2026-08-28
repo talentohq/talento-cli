@@ -31,7 +31,13 @@ func TestSignedChecksums(t *testing.T) {
 	if got, err := checksumFor(manifest, "talento_1.2.3_linux_amd64.tar.gz"); err != nil || got != hex.EncodeToString(sum[:]) {
 		t.Fatalf("checksum = %q, err = %v", got, err)
 	}
-	signature[0] = 'x'
+	// Always change the signed bytes: a random signature can already start
+	// with 'x', which made this rejection check intermittently test no change.
+	if signature[0] == 'x' {
+		signature[0] = 'y'
+	} else {
+		signature[0] = 'x'
+	}
 	if err := verifySignature(manifest, signature, encodedKey); err == nil {
 		t.Fatal("expected signature rejection")
 	}

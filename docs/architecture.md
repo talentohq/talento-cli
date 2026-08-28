@@ -23,6 +23,25 @@ Runtime data flows through one path:
 command -> selected profile -> OAuth access token -> official MCP Go SDK -> generic gateway
 ```
 
+The interactive TUI is a second presentation layer, not a subprocess wrapper around Cobra output.
+`app.Session` binds a long-lived connection to an explicit profile and exposes capability discovery,
+validated invocation, exact-preview confirmation, and resource reads without prompting. The one-shot
+CLI retains its existing execution, output, and confirmation contracts through shared outcome helpers.
+Bubble Tea models in `internal/tui` own only interaction and rendering; asynchronous messages carry
+request/session generations so old responses cannot cross views or companies. See [tui.md](tui.md).
+
+The session checks live capability and schema revisions before dispatch. Reviewed schemas receive
+generated forms; new or changed live schemas use an explicitly advanced JSON editor. Only live
+resource advertisements are available, including compatibility normalization of exact reviewed
+legacy templates. Source MCP results stay intact, while all displayed text passes through the same
+terminal sanitization boundary before styling.
+
+TUI writes require local argument review and, when returned, separate server-preview confirmation.
+Opaque single-use preview handles prevent cross-session or duplicate confirmation. A refreshable
+bearer provider reuses CLI-owned OAuth without an SDK authorization handler that could replay a
+POST. Uncertain write outcomes are not retried automatically. The TUI has no persistent result cache,
+background mutations, or AI dependency.
+
 Profile selection short-circuits on explicit `--profile` and `TALENTO_PROFILE`, then considers the
 nearest trusted `.talento/config.json`, then the global default. Project discovery starts from the
 canonical working directory, refuses symlinked marker/config entries, reads one bounded stable file,

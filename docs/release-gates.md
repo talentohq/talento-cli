@@ -13,6 +13,9 @@ environment is approved and every item below has current evidence attached to th
 - Employee, manager/HR, sales, finance, and external-user skill evaluations pass.
 - Packaged archives—not repository builds—pass install, auth, `doctor`, completion, credential,
   adapter, and verified-upgrade smoke tests on macOS, Linux, and Windows.
+- Packaged `talento tui` passes a real-terminal smoke test on macOS, Linux, and Windows Terminal
+  (ConPTY): launch/sign-in, read, form review, exact preview, profile isolation, resize, and clean
+  exit. Unix PTY and cross-platform model tests do not replace packaged Windows terminal evidence.
 - macOS binaries are Developer ID signed and notarized; Windows binaries are Authenticode signed,
   and their certificate subject exactly matches the protected `TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER` policy stamped into `install.ps1`.
 - Checksums, Ed25519 signature, Sigstore bundle, SBOMs, and GitHub attestations verify.

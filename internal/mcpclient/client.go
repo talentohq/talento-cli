@@ -3,10 +3,12 @@ package mcpclient
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -18,11 +20,48 @@ type Client struct {
 	session *mcp.ClientSession
 }
 
+// TokenProvider is called for each HTTP request, allowing the CLI-owned OAuth
+// service to refresh expiring credentials without reconnecting or replaying a
+// tool call. Calls to a provider are serialized by this package.
+type TokenProvider func(context.Context) (string, error)
+
+// ErrNotDispatched distinguishes a failed local authorization/preflight check
+// from a transport error after a write may have reached the gateway.
+var ErrNotDispatched = errors.New("MCP request was not dispatched")
+
+// ErrUnauthorized means the gateway explicitly rejected authentication. It is
+// not an unknown write outcome and never triggers an automatic login or replay.
+var ErrUnauthorized = errors.New("MCP authorization was rejected")
+
+type dispatchGuardKey struct{}
+
+// WithDispatchGuard checks session-local state after token refresh and directly
+// before dispatch. A rejected guard never sends the HTTP request. It is used to
+// prevent a preview authorized before reauthentication from being confirmed.
+func WithDispatchGuard(ctx context.Context, guard func() error) context.Context {
+	return context.WithValue(ctx, dispatchGuardKey{}, guard)
+}
+
 func Connect(ctx context.Context, accessToken string) (*Client, error) {
 	return ConnectTo(ctx, config.Endpoint, accessToken, nil)
 }
 
 func ConnectTo(ctx context.Context, endpoint, accessToken string, base *http.Client) (*Client, error) {
+	return connectTo(ctx, endpoint, accessToken, nil, base)
+}
+
+func ConnectWithTokenProvider(ctx context.Context, provider TokenProvider) (*Client, error) {
+	return ConnectToWithTokenProvider(ctx, config.Endpoint, provider, nil)
+}
+
+func ConnectToWithTokenProvider(ctx context.Context, endpoint string, provider TokenProvider, base *http.Client) (*Client, error) {
+	if provider == nil {
+		return nil, errors.New("MCP token provider is required")
+	}
+	return connectTo(ctx, endpoint, "", &serializedTokenSource{provider: provider}, base)
+}
+
+func connectTo(ctx context.Context, endpoint, token string, source *serializedTokenSource, base *http.Client) (*Client, error) {
 	if base == nil {
 		base = &http.Client{Timeout: 45 * time.Second}
 	}
@@ -32,9 +71,11 @@ func ConnectTo(ctx context.Context, endpoint, accessToken string, base *http.Cli
 	}
 	httpClient := &http.Client{
 		Timeout: 45 * time.Second,
+		// A 307/308 redirect would otherwise replay a POST, possibly including a
+		// write. The gateway is fixed; redirects are never part of this protocol.
+		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 		Transport: bearerTransport{
-			token: accessToken,
-			base:  transportBase,
+			token: token, source: source, base: transportBase,
 		},
 	}
 	transport := &mcp.StreamableClientTransport{
@@ -64,6 +105,7 @@ func (c *Client) Close() error {
 func (c *Client) ListTools(ctx context.Context) ([]*mcp.Tool, error) {
 	var tools []*mcp.Tool
 	cursor := ""
+	seen := make(map[string]bool)
 	for {
 		result, err := c.session.ListTools(ctx, &mcp.ListToolsParams{Cursor: cursor})
 		if err != nil {
@@ -73,6 +115,10 @@ func (c *Client) ListTools(ctx context.Context) ([]*mcp.Tool, error) {
 		if result.NextCursor == "" {
 			return tools, nil
 		}
+		if seen[result.NextCursor] {
+			return nil, errors.New("list MCP tools: repeated pagination cursor")
+		}
+		seen[result.NextCursor] = true
 		cursor = result.NextCursor
 	}
 }
@@ -88,6 +134,7 @@ func (c *Client) CallTool(ctx context.Context, name string, arguments map[string
 func (c *Client) ListResources(ctx context.Context) ([]*mcp.Resource, error) {
 	var resources []*mcp.Resource
 	cursor := ""
+	seen := make(map[string]bool)
 	for {
 		result, err := c.session.ListResources(ctx, &mcp.ListResourcesParams{Cursor: cursor})
 		if err != nil {
@@ -97,6 +144,31 @@ func (c *Client) ListResources(ctx context.Context) ([]*mcp.Resource, error) {
 		if result.NextCursor == "" {
 			return resources, nil
 		}
+		if seen[result.NextCursor] {
+			return nil, errors.New("list MCP resources: repeated pagination cursor")
+		}
+		seen[result.NextCursor] = true
+		cursor = result.NextCursor
+	}
+}
+
+func (c *Client) ListResourceTemplates(ctx context.Context) ([]*mcp.ResourceTemplate, error) {
+	var templates []*mcp.ResourceTemplate
+	cursor := ""
+	seen := make(map[string]bool)
+	for {
+		result, err := c.session.ListResourceTemplates(ctx, &mcp.ListResourceTemplatesParams{Cursor: cursor})
+		if err != nil {
+			return nil, fmt.Errorf("list MCP resource templates: %w", err)
+		}
+		templates = append(templates, result.ResourceTemplates...)
+		if result.NextCursor == "" {
+			return templates, nil
+		}
+		if seen[result.NextCursor] {
+			return nil, errors.New("list MCP resource templates: repeated pagination cursor")
+		}
+		seen[result.NextCursor] = true
 		cursor = result.NextCursor
 	}
 }
@@ -110,16 +182,56 @@ func (c *Client) ReadResource(ctx context.Context, uri string) (*ResourceOutcome
 }
 
 type bearerTransport struct {
-	token string
-	base  http.RoundTripper
+	token  string
+	source *serializedTokenSource
+	base   http.RoundTripper
 }
 
 func (t bearerTransport) RoundTrip(request *http.Request) (*http.Response, error) {
+	token := t.token
+	if t.source != nil {
+		var err error
+		token, err = t.source.accessToken(request.Context())
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrNotDispatched, err)
+		}
+	}
+	if err := request.Context().Err(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrNotDispatched, err)
+	}
+	if guard, ok := request.Context().Value(dispatchGuardKey{}).(func() error); ok {
+		if err := guard(); err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrNotDispatched, err)
+		}
+	}
 	clone := request.Clone(request.Context())
 	clone.Header = request.Header.Clone()
-	clone.Header.Set("Authorization", "Bearer "+t.token)
+	clone.Header.Set("Authorization", "Bearer "+token)
 	clone.Header.Set("User-Agent", "talento/"+buildinfo.Version)
-	return t.base.RoundTrip(clone)
+	response, err := t.base.RoundTrip(clone)
+	if err == nil && response.StatusCode == http.StatusUnauthorized {
+		_ = response.Body.Close()
+		return nil, fmt.Errorf("%w: HTTP 401", ErrUnauthorized)
+	}
+	return response, err
+}
+
+type serializedTokenSource struct {
+	mu       sync.Mutex
+	provider TokenProvider
+}
+
+func (s *serializedTokenSource) accessToken(ctx context.Context) (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
+	token, err := s.provider(ctx)
+	if err == nil && token == "" {
+		err = errors.New("MCP token provider returned an empty access token")
+	}
+	return token, err
 }
 
 type ToolState string

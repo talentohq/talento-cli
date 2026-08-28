@@ -1,86 +1,168 @@
 # Talento CLI
 
-`talento` is the native, scriptable TalentoHQ client. It connects only to the generic
-Streamable HTTP MCP gateway at `https://mcp.talentohq.com/mcp`, owns a named OAuth grant for
-each company profile, and exposes the complete reviewed gateway surface as stable commands.
+`talento` is a native command-line client for TalentoHQ. Use it to find and update people, time,
+absences, expenses, projects, tasks, documents, training, recruitment, CRM, invoices, reports, and
+the other capabilities available to your TalentoHQ account.
 
-The CLI does not recreate Talento business logic. Account, module, role, permission, visibility,
-tenant scope, calculations, and write semantics remain server-authoritative.
+The CLI connects to the fixed TalentoHQ MCP gateway at `https://mcp.talentohq.com/mcp` and signs in
+with OAuth. Each named profile represents one company grant, so you never need to enter an account
+URL or paste an API token. TalentoHQ remains authoritative for company access, enabled modules,
+roles, permissions, visibility, calculations, approvals, and whether a write is previewed or
+committed.
 
-> `0.1.x` releases are previews. Stable `1.0.0` is blocked by the cross-role, signed-platform,
-> and packaged-release gates in [docs/release-gates.md](docs/release-gates.md).
+> The CLI is currently a preview. There are no packaged
+> [GitHub releases](https://github.com/talentohq/talento-cli/releases) yet; install it from source
+> with Go for now.
 
 ## Install
 
-Released builds support macOS, Linux, and Windows on amd64 and arm64.
+You need [Go](https://go.dev/doc/install) 1.26.7 or newer. The CLI supports macOS, Linux, and
+Windows on amd64 and arm64.
+
+### Install with Go
 
 ```sh
-brew install talentohq/tap/talento
-scoop bucket add talentohq https://github.com/talentohq/scoop-bucket
-scoop install talento
 go install github.com/talentohq/talento-cli/cmd/talento@latest
+talento version
 ```
 
-The release page also contains signed checksums, archives, deb/rpm/apk packages, Nix instructions,
-`install.sh`, and `install.ps1`. The direct installers choose the newest stable release when one
-exists and otherwise choose the newest preview; set `TALENTO_CHANNEL=preview` or `stable` to pin a
-channel, or `TALENTO_VERSION=0.1.2` to install an exact release. Direct installers require `cosign`
-and fail closed if the exact release workflow identity cannot be verified. Stable Windows installs
-also require the release-stamped Authenticode publisher policy. Existing direct installations are
-preserved and restored if candidate or post-install version validation fails. Until the first
-release exists, build locally with Go 1.26 or newer:
+`go install` writes the binary to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is unset. If
+your shell cannot find `talento`, add that directory to `PATH`. For example, in Bash or Zsh:
 
 ```sh
-go build -o talento ./cmd/talento
+export PATH="$(go env GOPATH)/bin:$PATH"
+talento version
 ```
 
-## Start
+In PowerShell:
+
+```powershell
+$env:Path = "$(go env GOPATH)\bin;$env:Path"
+talento version
+```
+
+### Build a checkout
+
+```sh
+git clone https://github.com/talentohq/talento-cli.git
+cd talento-cli
+go build -o talento ./cmd/talento
+./talento version
+```
+
+Homebrew, Scoop, Nix, deb/rpm/apk packages, signed archives, and verified shell and PowerShell
+installers are planned release channels. They are not available until the first preview release is
+published. See [Distribution and verification](docs/distribution.md) for the packaging and
+signature contract.
+
+## Quickstart
+
+Run the interactive setup wizard:
 
 ```sh
 talento setup
-talento commands --available
-talento people list --query Ana
 ```
 
-On a terminal, `talento setup` guides profile selection, OAuth, local-agent integration, optional
-shell completion guidance, and a final health check. Running bare `talento` offers this flow only
-when no usable authenticated profile is selected. You can still run each stage directly:
+Setup creates or selects a named profile, opens TalentoHQ OAuth in your browser, verifies the grant,
+offers to configure detected local coding agents, shows optional shell-completion guidance, and
+finishes with a health check. It does not ask for a company URL or API token.
+
+After setup, verify the installation and discover what your selected grant can use:
+
+```sh
+talento doctor
+talento commands --available
+talento people list --name Ana
+```
+
+`commands --available` is profile-aware: it shows only the reviewed commands backed by tools that
+the selected TalentoHQ grant currently exposes.
+
+### Terminal workspace
+
+Open the keyboard-driven workspace with your selected profile:
+
+```sh
+talento tui
+talento tui --profile acme
+```
+
+The TUI uses the same TalentoHQ OAuth profiles as ordinary commands. It does not require an AI
+subscription or coding agent. Browse grouped actions, press `/` to search, fill in a form, and use
+`Ctrl+S` to run a read or review a write. `Ctrl+P` switches profiles for this session only, `Ctrl+R`
+refreshes reads, and `?` shows contextual help.
+
+Writes require a deliberate review before submission; a server preview requires a separate exact
+confirmation. Results remain server-authoritative. The workspace is text-first, with a structured
+result inspector, and does not parse server prose into editable record tables.
+
+The TUI requires a real terminal and cannot be combined with machine-output flags or `--yes`.
+Bare `talento` still shows help or offers setup. See [Terminal workspace](docs/tui.md) for forms,
+authentication, write states, and terminal requirements.
+
+## Configure authentication and profiles
+
+### Sign in without the setup wizard
+
+If you only want to configure the CLI and not a coding-agent integration, authenticate a profile
+directly:
 
 ```sh
 talento auth login --profile acme
+talento auth status --profile acme
 talento profile set-default acme
-talento setup --agent codex --scope user --yes --json
 ```
 
-OAuth discovers the generic gateway, dynamically registers a public client, opens the browser, and
-uses authorization-code PKCE. Tokens go to the operating-system credential store. If a system store
-is unavailable, file credentials require explicit opt-in:
+`auth login --profile <name>` creates the named profile when it does not exist. Use profiles for
+different companies or grants:
+
+```sh
+talento profile list
+talento profile show acme
+talento people list --profile acme --name Ana
+```
+
+Profile selection follows this precedence:
+
+1. `--profile <name>`
+2. `TALENTO_PROFILE`
+3. The nearest trusted repository selector
+4. The global default set with `talento profile set-default <name>`
+
+An explicit flag or environment variable bypasses repository-profile discovery.
+
+### Credential storage
+
+OAuth tokens are stored in the operating-system credential store. If the system store is
+unavailable, the CLI fails closed unless you explicitly opt in to an owner-only plaintext file:
 
 ```sh
 talento auth login --allow-file-credentials
+```
+
+Or set the equivalent environment variable:
+
+```sh
 export TALENTO_ALLOW_FILE_CREDENTIALS=1
 ```
 
-The fallback is reported clearly and stored owner-only. The CLI never accepts an account URL or API
-token as an authentication fallback.
+The fallback location is reported when it is used. Profile and status output never includes tokens.
 
-### Repository profile selection
+### Select a profile per repository
 
-A repository can select an existing global profile with one minimal file:
+A repository can select an existing global profile with `.talento/config.json`:
 
 ```json
 {"profile":"acme"}
 ```
 
-Save it as `.talento/config.json`. The nearest ancestor wins in nested worktrees. The file may
-contain only `profile`; endpoints, tokens, credential paths, commands, environment values, and
-extension fields are rejected. The CLI does not follow a symlinked `.talento` directory or config
-file.
+The nearest ancestor selector wins in nested worktrees. The file may contain only `profile`; it
+cannot define an endpoint, token, credential path, command, environment value, or extension field.
+The CLI does not follow a symlinked `.talento` directory or config file. The selected profile must
+already exist in the global configuration; the repository file never creates or authenticates it.
 
-The first interactive use offers use once, always trust this exact file, or cancel. Persistent trust
-is non-secret metadata bound to the canonical project/config path, selected profile, and SHA-256 of
-the exact file bytes. Any edit makes the record stale. Non-interactive modes, including `--yes`,
-fail closed until automation opts in explicitly:
+On first interactive use, the CLI offers to use the selector once, trust its exact contents, or
+cancel. An edit invalidates persistent trust. Inspect or manage trust explicitly with:
 
 ```sh
 talento profile project-status .
@@ -88,44 +170,106 @@ talento profile trust-project .
 talento profile untrust-project .
 ```
 
-Selection precedence is `--profile`, `TALENTO_PROFILE`, a trusted nearest-ancestor selector, then
-the global default. Explicit flag or environment selection bypasses project discovery. The local
-file can name only an already configured global profile and never creates or authenticates one.
+Non-interactive modes fail closed until the exact selector is trusted or a profile is selected with
+`--profile` or `TALENTO_PROFILE`.
 
-## Output and writes
+### Shell completion
+
+Generate completion for Bash, Zsh, Fish, or PowerShell. For the current shell session:
 
 ```sh
-talento people list --json
-talento people list --agent
-talento people list --jq '.data.result.content'
-talento reports create-changelog --md
+# Bash
+source <(talento completion bash)
+
+# Zsh
+source <(talento completion zsh)
+
+# Fish
+talento completion fish | source
 ```
 
-- Human output is concise by default.
-- `--json` returns `{ok, data, summary, breadcrumbs, meta}`.
-- `--agent` disables prompts and returns data-only successes plus structured errors.
-- `--md` renders presentation-friendly output.
-- `--jq` is built in; no external `jq` executable is required.
-- `--agent`, `--json`, `--md`, `--jq`, `--yes`, `TALENTO_NONINTERACTIVE=1`, `CI`, and redirected
-  input or output disable onboarding and sign-in prompts. They never open a browser unexpectedly.
+```powershell
+# PowerShell
+talento completion powershell | Out-String | Invoke-Expression
+```
 
-Each live MCP result determines write behavior. An immediate commit is reported as committed. A
-preview is shown but not executed in non-interactive mode; `--yes` confirms only the preview created
-by that command. `talento action confirm <preview-id>` confirms an explicit saved preview. Approval
-requests remain `submitted_for_approval` and are never described as approved.
+Run `talento completion --help` and follow your shell's documentation to install completion
+persistently.
 
-## Schema-driven input
+### Environment variables
 
-Every generated tool command validates its final merged argument object against the complete
-embedded Draft 2020-12 JSON Schema before opening an MCP connection. `--input` and `--input-file`
-accept one JSON object and are mutually exclusive; explicit schema-derived flags override matching
-keys in that object. Invalid types, enums, nested values, required properties, numeric bounds, and
-unsupported properties fail locally as usage errors. Talento business rules and permissions remain
-server-authoritative.
+| Variable | Purpose |
+| --- | --- |
+| `TALENTO_PROFILE` | Select a named profile and bypass repository-profile discovery. |
+| `TALENTO_NONINTERACTIVE=1` | Disable setup, authentication, and confirmation prompts. |
+| `TALENTO_ALLOW_FILE_CREDENTIALS=1` | Allow owner-only file credentials when the system store is unavailable. |
+| `TALENTO_CONFIG_DIR` | Override the configuration directory for an isolated environment. |
+| `TALENTO_HOME` | Override the home directory used for managed agent integrations. |
+| `CI` | Disable interactive behavior in continuous integration. |
 
-Object and complex-array flags accept one complete JSON value. Scalar arrays support a repeatable
-`--<name>-item` flag; values are never comma-split, so literal commas are preserved. The incumbent
-base flag remains the JSON escape hatch and is the way to pass an empty array:
+Non-secret profile and integration metadata is stored under the operating system's user
+configuration directory. Run `talento doctor --verbose` to see the resolved path safely.
+
+Machine-output flags, `--yes`, redirected input, and redirected output also disable onboarding and
+sign-in prompts. They never open a browser unexpectedly.
+
+## Use the CLI
+
+### Discover commands
+
+Human help is grouped by workflow, and each generated domain documents its available commands and
+schema-derived flags:
+
+```sh
+talento --help
+talento commands
+talento commands --available
+talento people --help
+talento people list --help
+```
+
+The generated domains are `people`, `time`, `absences`, `expenses`, `schedules`, `appointments`,
+`projects`, `tasks`, `todos`, `documents`, `goals`, `skills`, `evaluations`, `surveys`, `trainings`,
+`recruitment`, `onboarding`, `crm`, `customers`, `contacts`, `leads`, `opportunities`, `invoices`,
+`purchases`, `providers`, `items`, `views`, and `reports`.
+
+Additional operational help is available through:
+
+```text
+talento help output
+talento help profiles
+talento help writes
+talento help exit-codes
+talento help environment
+talento help agents
+```
+
+### Read and search
+
+Generated flags use kebab-case versions of the gateway input names:
+
+```sh
+talento people list --name Ana
+talento people list --office-id 42 --team-id 7
+talento people get --employee-id 123
+```
+
+Your grant may expose only part of the complete command catalogue. If a capability is unavailable,
+the CLI reports it rather than trying to reproduce TalentoHQ business logic locally.
+
+### Pass structured input
+
+Every generated tool command validates the final input against its embedded JSON Schema before it
+authenticates or opens an MCP connection. Pass one JSON object directly or from a file:
+
+```sh
+talento tasks create-task --input '{"name":"Follow up","tags":["urgent"]}'
+talento tasks create-task --input-file task.json
+```
+
+`--input` and `--input-file` are mutually exclusive. Explicit schema-derived flags override matching
+keys in that object. Object and complex-array flags accept a complete JSON value; scalar arrays also
+provide repeatable item flags:
 
 ```sh
 talento tasks create-task --name "Follow up" --tags-item urgent --tags-item "sales,emea"
@@ -133,36 +277,141 @@ talento tasks create-task --name "Follow up" --tags '[]'
 talento invoices create --invoice-lines '[{"item_name":"Consulting","quantity":2}]'
 ```
 
-Enum flags and enum-valued scalar-array item flags expose shell completion candidates. Required
-fields are documented in `--help` but may also be satisfied by `--input` or `--input-file`.
+Values for repeatable array flags are not comma-split, so literal commas are preserved. Invalid
+types, enum values, required properties, nested values, numeric bounds, and unsupported properties
+fail locally as usage errors. TalentoHQ still enforces permissions and business rules.
 
-## Commands
+### Choose an output format
 
-The generated domains are `people`, `time`, `absences`, `expenses`, `schedules`, `appointments`,
-`projects`, `tasks`, `todos`, `documents`, `goals`, `skills`, `evaluations`, `surveys`, `trainings`,
-`recruitment`, `onboarding`, `crm`, `customers`, `contacts`, `leads`, `opportunities`, `invoices`,
-`purchases`, `providers`, `items`, `views`, and `reports`.
-
-Raw parity and operational commands remain available:
-
-```text
-talento tools list|describe|call
-talento resources list|read
-talento commands [--available]
-talento doctor [--verbose]
-talento setup [--agent <id>...] [--scope user|project] [--no-open] [--allow-file-credentials]
-talento profile trust-project|untrust-project|project-status [path]
-talento skill status [--integration <id>...] [--verbose]
-talento skill install|update|remove --agent <id>... [--scope user|project]
-talento handoff <chatgpt|claude|cursor-cloud|copilot-cloud|generic>
+```sh
+talento people list --json
+talento people list --md
+talento people list --agent
+talento people list --jq '.data'
 ```
 
-Run `talento --agent --help` for machine-readable command discovery. See
-[docs/coverage.md](docs/coverage.md) for the schema/manifest contract and
-[docs/agent-integration.md](docs/agent-integration.md) for local and hosted agents. Human help is
-grouped by workflow; `talento help output|profiles|writes|exit-codes|environment|agents` opens the
-operational help topics. The complete command-and-flag compatibility policy lives in
-[docs/cli-surface.md](docs/cli-surface.md).
+- Human output is concise by default.
+- `--json` returns the stable `{ok, data, summary, breadcrumbs, meta}` envelope.
+- `--md` renders presentation-friendly Markdown.
+- `--agent` disables prompts and returns data-only successes with structured errors.
+- `--jq` filters the built-in JSON representation; no external `jq` executable is required.
+
+Use one machine format consistently in scripts. `--json` and `--md` are mutually exclusive, as are
+`--agent` and `--md`. Run `talento --agent --help` for machine-readable command discovery.
+
+### Understand writes
+
+The live MCP response determines the state of every write:
+
+- `preview`: nothing has executed. Confirm interactively, pass `--yes` to the originating command,
+  or confirm the saved preview explicitly with `talento action confirm <preview-id>`.
+- `submitted_for_approval`: a request exists, but it is not approved or committed.
+- `committed`: TalentoHQ reports that the action completed and persisted.
+
+Non-interactive modes never confirm a preview unless `--yes` was explicitly supplied. `--yes`
+confirms only the preview created by that command; it does not bypass approval or permission checks.
+
+For example, the following command may commit, return a preview, request approval, or fail according
+to the server response and selected grant:
+
+```sh
+talento reports create-changelog --title "Weekly update" --content "Completed onboarding"
+```
+
+### Use raw MCP tools and resources
+
+Generated commands cover the reviewed gateway surface. Raw commands remain available for discovery
+and forward-compatible access:
+
+```sh
+talento tools list
+talento tools describe list_employees
+talento tools call list_employees --input '{"name":"Ana"}'
+
+talento resources list
+talento resources read '<uri-from-resources-list>'
+```
+
+Raw tool calls use the same authentication, schema validation, output, and write-state handling as
+generated commands.
+
+## Configure coding agents
+
+Interactive `talento setup` can detect and configure supported local agents. You can also manage
+integrations directly:
+
+```sh
+talento skill status
+talento skill install --agent codex --scope user
+talento skill update --agent codex --scope user
+talento skill remove --agent codex --scope user
+```
+
+Supported IDs are `claude-code`, `codex`, `gemini`, `copilot`, `cursor`, `windsurf`, and `opencode`.
+Use `--scope project` to install in the current project instead of the user scope. The CLI changes
+only files it owns, preserves user modifications, and requires `--force` before replacing a modified
+managed file; forced replacement creates a timestamped backup.
+
+Hosted agents cannot use local files or credentials. Generate product-specific connection guidance
+and let the hosted product complete its own OAuth flow:
+
+```sh
+talento handoff chatgpt
+talento handoff claude
+talento handoff generic
+```
+
+Never paste a local CLI token into another product. See
+[Agent integration](docs/agent-integration.md) for supported adapters, scopes, and hosted-agent
+caveats.
+
+## Troubleshooting and maintenance
+
+Start with the health report:
+
+```sh
+talento doctor
+talento doctor --verbose
+```
+
+The verbose report includes safe paths and integrity details, never credentials or prompt content.
+These commands help isolate common setup problems:
+
+```sh
+talento version
+talento auth status
+talento profile list
+talento profile project-status .
+talento commands --available
+talento skill status --verbose
+```
+
+Automation can rely on these stable exit codes:
+
+| Code | Meaning |
+| ---: | --- |
+| `0` | Success |
+| `1` | Usage or invalid input |
+| `2` | Not found |
+| `3` | Authentication required |
+| `4` | Forbidden |
+| `5` | Rate limited |
+| `6` | Network failure |
+| `7` | API or unexpected failure |
+| `8` | Ambiguous match |
+
+With `--json` or `--agent`, errors also include a structured code and message on standard error.
+
+## More documentation
+
+- [Architecture](docs/architecture.md)
+- [Agent integration](docs/agent-integration.md)
+- [Command-surface compatibility](docs/cli-surface.md)
+- [Gateway coverage contract](docs/coverage.md)
+- [Distribution and verification](docs/distribution.md)
+- [Release gates](docs/release-gates.md)
+- [Contributing](CONTRIBUTING.md)
+- [Security policy](SECURITY.md)
 
 ## Development
 
@@ -174,4 +423,4 @@ go run ./cmd/schemagen -check
 go run ./cmd/surfacegen -check
 ```
 
-No telemetry is collected. This repository is MIT licensed.
+No telemetry is collected. This repository is [MIT licensed](LICENSE).

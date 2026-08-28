@@ -425,6 +425,12 @@ jobs:
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento setup --agent codex --scope user --yes --json >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento doctor --json >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento upgrade --agent >/dev/null
+      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
+        with:
+          go-version-file: go.mod
+          cache: false
+      - name: Exercise packaged TUI terminal startup and cleanup
+        run: TALENTO_TUI_BINARY="$PWD/smoke/talento" go test -count=1 ./internal/tui -run '^TestTUIPackagedStartup$'
 
   smoke-packaged-windows:
     if: always() && (needs.preview.result == 'success' || needs.stable-stage.result == 'success')
@@ -472,6 +478,7 @@ jobs:
           $env:TALENTO_CONFIG_DIR = (Resolve-Path config)
           & smoke/package/talento.exe --agent version
           & smoke/package/talento.exe completion powershell | Out-Null
+          & smoke/package/talento.exe tui --help | Out-Null
           & smoke/package/talento.exe setup --agent codex --scope user --yes --json | Out-Null
           & smoke/package/talento.exe doctor --json | Out-Null
           & smoke/package/talento.exe upgrade --agent | Out-Null

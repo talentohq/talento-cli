@@ -257,10 +257,11 @@ func (a *App) MCP(ctx context.Context) (*mcpclient.Client, string, error) {
 }
 
 type ToolExecution struct {
-	Profile      string                 `json:"profile"`
-	Preview      *mcpclient.ToolOutcome `json:"preview,omitempty"`
-	Confirmation *mcpclient.ToolOutcome `json:"confirmation,omitempty"`
-	Result       *mcpclient.ToolOutcome `json:"result"`
+	Profile       string                 `json:"profile"`
+	Preview       *mcpclient.ToolOutcome `json:"preview,omitempty"`
+	Confirmation  *mcpclient.ToolOutcome `json:"confirmation,omitempty"`
+	Result        *mcpclient.ToolOutcome `json:"result"`
+	PreviewHandle PreviewHandle          `json:"-"`
 }
 
 func (e *ToolExecution) HumanText() string {
@@ -297,16 +298,13 @@ func (a *App) executeTool(ctx context.Context, client toolClient, profile, name 
 		}
 	}
 	if !available {
-		return nil, clioutput.Forbidden(fmt.Sprintf("tool %q is not available to profile %q; Talento role, permission, module, visibility, and tenant rules are server-authoritative", name, profile))
+		return nil, unavailableTool(name, profile)
 	}
-	outcome, err := client.CallTool(ctx, name, arguments)
+	execution, err := callToolExecution(ctx, client, profile, name, arguments)
 	if err != nil {
 		return nil, err
 	}
-	execution := &ToolExecution{Profile: profile, Result: outcome}
-	if outcome.IsError() {
-		return nil, clioutput.WithData(clioutput.API("Talento rejected the tool call", nil), execution)
-	}
+	outcome := execution.Result
 	if !outcome.IsPreview() {
 		return execution, nil
 	}
@@ -327,14 +325,50 @@ func (a *App) executeTool(ctx context.Context, client toolClient, profile, name 
 	if outcome.PreviewID == "" {
 		return nil, clioutput.WithData(clioutput.API("The server returned a preview without an explicit preview_id; it was not confirmed", nil), execution)
 	}
-	confirmation, err := client.CallTool(ctx, "confirm_action", map[string]any{"preview_id": outcome.PreviewID})
+	execution, err = confirmToolExecution(ctx, client, execution, outcome.PreviewID)
 	if err != nil {
 		return nil, err
+	}
+	return execution, nil
+}
+
+func unavailableTool(name, profile string) error {
+	return clioutput.Forbidden(fmt.Sprintf("tool %q is not available to profile %q; Talento role, permission, module, visibility, and tenant rules are server-authoritative", name, profile))
+}
+
+// Both the one-shot CLI and the persistent session share the original server
+// outcome interpretation. Session callers retain executions on server rejection
+// for rendering; the CLI wrapper keeps its existing nil/error envelope behavior.
+func callToolExecution(ctx context.Context, client toolClient, profile, name string, arguments map[string]any) (*ToolExecution, error) {
+	outcome, err := client.CallTool(ctx, name, arguments)
+	if err != nil {
+		return nil, err
+	}
+	if outcome == nil || outcome.Result == nil {
+		return nil, errors.New("gateway returned an empty tool result")
+	}
+	execution := &ToolExecution{Profile: profile, Result: outcome}
+	if outcome.IsError() {
+		return execution, clioutput.WithData(clioutput.API("Talento rejected the tool call", nil), execution)
+	}
+	if outcome.IsPreview() {
+		execution.Preview = outcome
+	}
+	return execution, nil
+}
+
+func confirmToolExecution(ctx context.Context, client toolClient, execution *ToolExecution, previewID string) (*ToolExecution, error) {
+	confirmation, err := client.CallTool(ctx, "confirm_action", map[string]any{"preview_id": previewID})
+	if err != nil {
+		return execution, err
+	}
+	if confirmation == nil || confirmation.Result == nil {
+		return execution, errors.New("gateway returned an empty confirmation result")
 	}
 	execution.Confirmation = confirmation
 	execution.Result = confirmation
 	if confirmation.IsError() {
-		return nil, clioutput.WithData(clioutput.API("Talento rejected the preview confirmation", nil), execution)
+		return execution, clioutput.WithData(clioutput.API("Talento rejected the preview confirmation", nil), execution)
 	}
 	return execution, nil
 }

@@ -138,7 +138,7 @@ func newRootCommand(talento *app.App, managedFS fs.FS, setupDeps setupDependenci
 	}
 	setupCommand := newSetupCommandWithDependencies(talento, managedFS, setupDeps)
 	addGroupedCommands(root, groupGettingStarted, setupCommand, newAuthCommand(talento), newProfileCommand(talento))
-	addGroupedCommands(root, groupWork, newActionCommand(talento))
+	addGroupedCommands(root, groupWork, newTUICommand(talento), newActionCommand(talento))
 	addGroupedCommands(root, groupDiscovery, newCommandsCommand(talento), newToolsCommand(talento), newResourcesCommand(talento))
 	addGroupedCommands(root, groupIntegrations, newSkillCommand(talento, managedFS), newHandoffCommand(talento))
 	addGroupedCommands(root, groupMaintenance, newDoctorCommand(talento, managedFS), newUpgradeCommand(talento), newCompletionCommand(root), newVersionCommand(talento))

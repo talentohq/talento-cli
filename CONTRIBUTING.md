@@ -26,6 +26,12 @@ contract test rejects drift. Keep workflow guidance progressive and capability d
 Tests use local HTTP servers and isolated homes. Never use production grants or customer data in the
 unit suite. Staging and stable-release gates are explicit, separately authorized operations.
 
+TUI tests drive the Bubble Tea models with fake sessions; Linux/macOS also run a real Unix PTY helper
+with an in-memory backend. Keep both the CLI one-shot behavior and session-bound write safety covered.
+Changing a TUI dependency requires regenerating and reviewing `vendor` as well as `go.mod`/`go.sum`.
+Run `go run ./cmd/surfacegen -diff`, append the next snapshot with `-next`, and verify with `-check`
+when adding a public command or flag; never rewrite an existing surface snapshot.
+
 Release tags are `vVERSION`, while every packaged metadata surface uses `VERSION`. Run
 `scripts/stamp-nix-version.sh VERSION` and commit `nix/version.nix` before creating either a preview
 or stable tag. The release workflow verifies the tag, Nix stamp, binary provenance, embedded Codex

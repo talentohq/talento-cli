@@ -38,6 +38,9 @@ jobs:
       - run: go mod verify
       - run: go test -count=1 ./...
       - run: go build ./cmd/talento
+      - name: Smoke test built TUI in a real terminal
+        if: runner.os != 'Windows'
+        run: TALENTO_TUI_BINARY="$PWD/talento" go test -count=1 ./internal/tui -run '^TestTUIPackagedStartup$'
       - name: Test POSIX and Bash installers
         if: runner.os != 'Windows'
         run: sh scripts/test-installers.sh

@@ -30,6 +30,20 @@ type Service struct {
 	Discover    func(context.Context, *http.Client) (Discovery, error)
 }
 
+// ErrReauthenticationRequired identifies an unusable grant that needs explicit
+// user sign-in. Network failures and transient provider errors do not match it.
+var ErrReauthenticationRequired = errors.New("reauthentication is required")
+
+// Keep existing CLI diagnostics unchanged while exposing recovery semantics to
+// long-lived clients. The underlying error remains available through Unwrap.
+type reauthenticationError struct{ cause error }
+
+func (e *reauthenticationError) Error() string { return e.cause.Error() }
+func (e *reauthenticationError) Unwrap() error { return e.cause }
+func (e *reauthenticationError) Is(target error) bool {
+	return target == ErrReauthenticationRequired
+}
+
 type ProfileStore interface {
 	SnapshotProfile(string) (config.ProfileSnapshot, error)
 	UpsertProfile(config.Profile) error
@@ -284,7 +298,7 @@ func (s *Service) AccessToken(ctx context.Context, profile string) (string, erro
 		return "", err
 	}
 	if err := validateStoredCredentials(credentials); err != nil {
-		return "", fmt.Errorf("stored credentials for profile %q are invalid: %w", profile, err)
+		return "", &reauthenticationError{cause: fmt.Errorf("stored credentials for profile %q are invalid: %w", profile, err)}
 	}
 	if credentials.ExpiresAt.After(s.Now().Add(60 * time.Second)) {
 		return credentials.AccessToken, nil
@@ -302,7 +316,7 @@ func (s *Service) Refresh(ctx context.Context, profile string) (Status, error) {
 		return Status{}, err
 	}
 	if err := validateStoredCredentials(credentials); err != nil {
-		return Status{}, fmt.Errorf("stored credentials for profile %q are invalid: %w", profile, err)
+		return Status{}, &reauthenticationError{cause: fmt.Errorf("stored credentials for profile %q are invalid: %w", profile, err)}
 	}
 	if _, err := s.refresh(ctx, profile, credentials); err != nil {
 		return Status{}, err
@@ -331,7 +345,7 @@ func validateStoredCredentials(credentials Credentials) error {
 
 func (s *Service) refresh(ctx context.Context, profile string, credentials Credentials) (Credentials, error) {
 	if credentials.RefreshToken == "" {
-		return Credentials{}, fmt.Errorf("profile %q has no refresh token; log in again", profile)
+		return Credentials{}, &reauthenticationError{cause: fmt.Errorf("profile %q has no refresh token; log in again", profile)}
 	}
 	discovery, err := s.Discover(ctx, s.HTTPClient)
 	if err != nil {
@@ -502,7 +516,16 @@ func (s *Service) postToken(ctx context.Context, endpoint string, form url.Value
 		if token.Description != "" {
 			message += ": " + token.Description
 		}
-		return tokenResponse{}, fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, strings.TrimSpace(message))
+		err := fmt.Errorf("token endpoint returned HTTP %d: %s", resp.StatusCode, strings.TrimSpace(message))
+		// Only explicit grant/client rejections offer sign-in recovery. A 429 or
+		// 5xx response must remain retryable even if its body names an old grant.
+		if resp.StatusCode >= 200 && resp.StatusCode < 500 && resp.StatusCode != http.StatusTooManyRequests {
+			switch token.Error {
+			case "invalid_grant", "invalid_client", "unauthorized_client":
+				return tokenResponse{}, &reauthenticationError{cause: err}
+			}
+		}
+		return tokenResponse{}, err
 	}
 	return token, nil
 }
