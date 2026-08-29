@@ -41,6 +41,9 @@ $env:Path = "$(go env GOPATH)\bin;$env:Path"
 talento version
 ```
 
+After installation, `talento upgrade` uses the same Go toolchain to build the latest version and
+transactionally replace the active executable.
+
 ### Build a checkout
 
 ```sh

@@ -51,9 +51,11 @@ the protected signing certificate using printable ASCII; packaging stamps that v
 The repository copy intentionally fails closed for stable versions until it has been release-stamped.
 
 Package-manager installations are not overwritten by `talento upgrade`; the command returns the
-exact manager command. Direct archive installations download release metadata, verify the signed
-manifest and artifact checksum, execute the downloaded binary to confirm its version, then swap the
-executable with rollback.
+exact manager command. A binary installed with `go install` uses the available Go toolchain to
+compile the latest module version into a temporary directory, validates the candidate version, and
+then replaces the active executable transactionally. Direct archive installations download release
+metadata, verify the signed manifest and artifact checksum, execute the downloaded binary to confirm
+its version, then swap the executable with rollback.
 
 Release discovery is channel-aware. A running v0 or SemVer-prerelease binary considers only
 published GitHub prereleases, while a stable v1-or-newer binary considers only published,

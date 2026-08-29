@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -17,6 +18,9 @@ func newUpgradeCommand(talento *app.App) *cobra.Command {
 			if err != nil {
 				return err
 			}
+			if buildinfo.Source == "go-install" && upgradeProgressEnabled(talento) {
+				_, _ = fmt.Fprintln(talento.Stderr, "Updating talento with the installed Go toolchain...")
+			}
 			result, err := upgrade.NewClient().InstallLatest(cmd.Context(), buildinfo.Version, executable, buildinfo.ReleasePublicKey)
 			if err != nil {
 				return err
@@ -24,4 +28,9 @@ func newUpgradeCommand(talento *app.App) *cobra.Command {
 			return talento.Output().Success(result, "Upgrade check completed.", nil, nil)
 		},
 	}
+}
+
+func upgradeProgressEnabled(talento *app.App) bool {
+	options := talento.Global
+	return options == nil || (!options.JSON && !options.Markdown && !options.Agent && options.JQ == "")
 }

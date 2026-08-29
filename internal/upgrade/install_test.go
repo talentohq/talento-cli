@@ -12,7 +12,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
+
+	"github.com/talentohq/talento-cli/internal/buildinfo"
 )
 
 func TestSignedChecksums(t *testing.T) {
@@ -97,4 +100,94 @@ func TestArtifactNamesAndPackageManagerDelegation(t *testing.T) {
 	if compareVersions("1.2.4", "1.2.3") <= 0 || compareVersions("1.2.3", "1.2.3") != 0 {
 		t.Fatal("version comparison failed")
 	}
+}
+
+func TestGoInstallBuildUpgradesActiveExecutableTransactionally(t *testing.T) {
+	originalSource := buildinfo.Source
+	buildinfo.Source = "go-install"
+	t.Cleanup(func() { buildinfo.Source = originalSource })
+
+	current := buildVersionBinary(t, "1.0.0", "current")
+	candidate := buildVersionBinary(t, "1.2.3", "candidate")
+	goExecutable := buildFakeGoInstaller(t)
+	t.Setenv("TALENTO_TEST_GO_CANDIDATE", candidate)
+
+	result, err := (&Client{goExecutablePath: goExecutable}).InstallLatest(context.Background(), "1.0.0", current, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Delegated {
+		t.Fatalf("result was delegated: %#v", result)
+	}
+	if result.Current != "1.0.0" || result.Installed != "1.2.3" || result.Executable != current {
+		t.Fatalf("result = %#v", result)
+	}
+	if err := validateBinary(context.Background(), current, "1.2.3"); err != nil {
+		t.Fatalf("active executable was not upgraded: %v", err)
+	}
+}
+
+func TestGoInstallBuildReportsToolchainFailure(t *testing.T) {
+	originalSource := buildinfo.Source
+	buildinfo.Source = "go-install"
+	t.Cleanup(func() { buildinfo.Source = originalSource })
+
+	current := buildVersionBinary(t, "1.0.0", "current")
+	missingGo := filepath.Join(t.TempDir(), "missing-go")
+	_, err := (&Client{goExecutablePath: missingGo}).InstallLatest(context.Background(), "1.0.0", current, "")
+	if err == nil || !strings.Contains(err.Error(), "update Go installation") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestGoExecutableFallsBackToBuildToolchain(t *testing.T) {
+	t.Setenv("PATH", t.TempDir())
+
+	got, err := (&Client{}).goExecutable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := filepath.Join(runtime.GOROOT(), "bin", executableFilename("go"))
+	if got != want {
+		t.Fatalf("go executable = %q, want %q", got, want)
+	}
+}
+
+func buildFakeGoInstaller(t *testing.T) string {
+	t.Helper()
+	directory := t.TempDir()
+	source := fmt.Sprintf(`package main
+
+import (
+	"os"
+	"path/filepath"
+)
+
+func main() {
+	if len(os.Args) != 3 || os.Args[1] != "install" || os.Args[2] != %q {
+		os.Exit(2)
+	}
+	candidate, err := os.ReadFile(os.Getenv("TALENTO_TEST_GO_CANDIDATE"))
+	if err != nil {
+		os.Exit(3)
+	}
+	name := "talento"
+	if %q == "windows" {
+		name += ".exe"
+	}
+	if err := os.WriteFile(filepath.Join(os.Getenv("GOBIN"), name), candidate, 0755); err != nil {
+		os.Exit(4)
+	}
+}
+`, goInstallTarget, runtime.GOOS)
+	sourcePath := filepath.Join(directory, "main.go")
+	if err := os.WriteFile(sourcePath, []byte(source), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	executable := filepath.Join(directory, executableFilename("go"))
+	command := exec.Command(filepath.Join(runtime.GOROOT(), "bin", executableFilename("go")), "build", "-o", executable, sourcePath)
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("build fake Go installer: %v\n%s", err, output)
+	}
+	return executable
 }

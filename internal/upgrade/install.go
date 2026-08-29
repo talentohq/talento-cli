@@ -25,7 +25,10 @@ import (
 	"github.com/talentohq/talento-cli/internal/buildinfo"
 )
 
-const maxAssetBytes = 256 << 20
+const (
+	maxAssetBytes   = 256 << 20
+	goInstallTarget = "github.com/talentohq/talento-cli/cmd/talento@latest"
+)
 
 type InstallResult struct {
 	Current       string   `json:"current"`
@@ -41,14 +44,14 @@ func (r InstallResult) HumanText() string {
 		return "This installation is managed by a package manager. Run: " + strings.Join(r.Command, " ")
 	}
 	if r.AlreadyLatest {
-		return "talento " + r.Current + " is already the latest release."
+		return "talento " + r.Current + " is already the latest available version."
 	}
 	return fmt.Sprintf("Upgraded talento from %s to %s at %s.", r.Current, r.Installed, r.Executable)
 }
 
 func (c *Client) InstallLatest(ctx context.Context, current, executablePath, publicKey string) (InstallResult, error) {
 	if buildinfo.Source == "go-install" {
-		return InstallResult{Current: current, Installed: current, Executable: executablePath, Delegated: true, Command: []string{"go", "install", "github.com/talentohq/talento-cli/cmd/talento@latest"}}, nil
+		return c.installLatestWithGo(ctx, current, executablePath)
 	}
 	if command := PackageManagerCommand(executablePath); len(command) > 0 {
 		return InstallResult{Current: current, Installed: current, Executable: executablePath, Delegated: true, Command: command}, nil
@@ -108,6 +111,90 @@ func (c *Client) InstallLatest(ctx context.Context, current, executablePath, pub
 		return InstallResult{}, err
 	}
 	return InstallResult{Current: current, Installed: latest, Executable: executablePath}, nil
+}
+
+func (c *Client) installLatestWithGo(ctx context.Context, current, executablePath string) (InstallResult, error) {
+	goExecutable, err := c.goExecutable()
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("update Go installation: %w", err)
+	}
+	stagingDirectory, err := os.MkdirTemp("", "talento-go-install-*")
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("create Go upgrade directory: %w", err)
+	}
+	defer func() { _ = os.RemoveAll(stagingDirectory) }()
+
+	command := exec.CommandContext(ctx, goExecutable, "install", goInstallTarget)
+	command.Env = environmentWith("GOBIN", stagingDirectory)
+	var commandOutput bytes.Buffer
+	command.Stdout = &commandOutput
+	command.Stderr = &commandOutput
+	if err := command.Run(); err != nil {
+		if ctx.Err() != nil {
+			return InstallResult{}, fmt.Errorf("update Go installation: %w", ctx.Err())
+		}
+		detail := strings.TrimSpace(commandOutput.String())
+		if detail == "" {
+			return InstallResult{}, fmt.Errorf("update Go installation: %w", err)
+		}
+		return InstallResult{}, fmt.Errorf("update Go installation: %w: %s", err, detail)
+	}
+
+	candidatePath := filepath.Join(stagingDirectory, executableName())
+	latest, err := binaryVersion(ctx, candidatePath)
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("validate Go-installed executable: %w", err)
+	}
+	if compareVersions(latest, current) <= 0 {
+		return InstallResult{Current: current, Installed: current, Executable: executablePath, AlreadyLatest: true}, nil
+	}
+	candidate, err := os.ReadFile(candidatePath)
+	if err != nil {
+		return InstallResult{}, fmt.Errorf("read Go-installed executable: %w", err)
+	}
+	if len(candidate) > maxAssetBytes {
+		return InstallResult{}, fmt.Errorf("Go-installed executable exceeds the size limit")
+	}
+	if err := replaceExecutable(ctx, executablePath, candidate, latest); err != nil {
+		return InstallResult{}, err
+	}
+	return InstallResult{Current: current, Installed: latest, Executable: executablePath}, nil
+}
+
+func (c *Client) goExecutable() (string, error) {
+	if c.goExecutablePath != "" {
+		return c.goExecutablePath, nil
+	}
+	if path, err := exec.LookPath("go"); err == nil {
+		return path, nil
+	}
+	path := filepath.Join(runtime.GOROOT(), "bin", executableFilename("go"))
+	if info, err := os.Stat(path); err == nil && !info.IsDir() {
+		return path, nil
+	}
+	return "", fmt.Errorf("the Go toolchain is unavailable; install Go and rerun `talento upgrade`")
+}
+
+func environmentWith(key, value string) []string {
+	prefix := key + "="
+	environment := make([]string, 0, len(os.Environ())+1)
+	for _, item := range os.Environ() {
+		if !strings.HasPrefix(item, prefix) {
+			environment = append(environment, item)
+		}
+	}
+	return append(environment, prefix+value)
+}
+
+func executableName() string {
+	return executableFilename("talento")
+}
+
+func executableFilename(name string) string {
+	if runtime.GOOS == "windows" {
+		return name + ".exe"
+	}
+	return name
 }
 
 func (c *Client) download(ctx context.Context, asset Asset) ([]byte, error) {
@@ -297,21 +384,32 @@ func replaceExecutable(ctx context.Context, path string, binary []byte, expected
 }
 
 func validateBinary(ctx context.Context, path, expectedVersion string) error {
+	version, err := binaryVersion(ctx, path)
+	if err != nil {
+		return err
+	}
+	if version != expectedVersion {
+		return fmt.Errorf("candidate executable reports version %q, expected %q", version, expectedVersion)
+	}
+	return nil
+}
+
+func binaryVersion(ctx context.Context, path string) (string, error) {
 	command := exec.CommandContext(ctx, path, "--agent", "version")
 	output, err := command.Output()
 	if err != nil {
-		return fmt.Errorf("run downloaded executable: %w", err)
+		return "", fmt.Errorf("run candidate executable: %w", err)
 	}
 	var response struct {
 		Version string `json:"version"`
 	}
 	if err := json.Unmarshal(output, &response); err != nil {
-		return fmt.Errorf("parse downloaded executable version: %w", err)
+		return "", fmt.Errorf("parse candidate executable version: %w", err)
 	}
-	if response.Version != expectedVersion {
-		return fmt.Errorf("downloaded executable reports version %q, expected %q", response.Version, expectedVersion)
+	if strings.TrimSpace(response.Version) == "" {
+		return "", fmt.Errorf("candidate executable did not report a version")
 	}
-	return nil
+	return response.Version, nil
 }
 
 func PackageManagerCommand(executablePath string) []string {

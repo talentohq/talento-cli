@@ -33,8 +33,9 @@ type Check struct {
 }
 
 type Client struct {
-	HTTPClient  *http.Client
-	ReleasesURL string
+	HTTPClient       *http.Client
+	ReleasesURL      string
+	goExecutablePath string
 }
 
 func NewClient() *Client {
