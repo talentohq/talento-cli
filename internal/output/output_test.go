@@ -15,6 +15,10 @@ type humanValue struct {
 
 func (v humanValue) HumanText() string { return "Human: " + v.Value }
 
+type distinctMarkdownValue struct{ humanValue }
+
+func (v distinctMarkdownValue) MarkdownText() string { return "Markdown: " + v.Value }
+
 func TestStableJSONEnvelope(t *testing.T) {
 	var stdout bytes.Buffer
 	writer := New(Options{JSON: true, Writer: &stdout})
@@ -69,6 +73,18 @@ func TestBuiltInJQAndMarkdown(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !strings.Contains(markdown.String(), "## Result ready") || !strings.Contains(markdown.String(), "Human: shown") {
+		t.Fatalf("markdown output = %s", markdown.String())
+	}
+}
+
+func TestMarkdownCanPreserveASeparateMachineFacingRepresentation(t *testing.T) {
+	var markdown bytes.Buffer
+	writer := New(Options{Markdown: true, Writer: &markdown})
+	value := distinctMarkdownValue{humanValue{Value: "shown"}}
+	if err := writer.Success(value, "Result ready.", nil, nil); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markdown.String(), "Markdown: shown") || strings.Contains(markdown.String(), "Human: shown") {
 		t.Fatalf("markdown output = %s", markdown.String())
 	}
 }

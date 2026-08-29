@@ -31,6 +31,10 @@ type HumanRenderable interface {
 	HumanText() string
 }
 
+type MarkdownRenderable interface {
+	MarkdownText() string
+}
+
 type errorData interface {
 	ErrorData() any
 }
@@ -206,6 +210,13 @@ func (w *Writer) writeMarkdown(data any, summary string) error {
 	if summary != "" {
 		heading := terminal.SanitizeLine(strings.TrimSuffix(strings.TrimSpace(summary), "."))
 		if _, err := fmt.Fprintf(w.opts.Writer, "## %s\n\n", heading); err != nil {
+			return err
+		}
+	}
+	if renderable, ok := data.(MarkdownRenderable); ok {
+		text := strings.TrimSpace(renderable.MarkdownText())
+		if text != "" {
+			_, err := fmt.Fprintln(w.opts.Writer, terminal.Sanitize(text))
 			return err
 		}
 	}

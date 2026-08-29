@@ -20,9 +20,64 @@ func (s authStatus) HumanText() string {
 	if s.Expired {
 		state = "expired"
 	}
-	text := fmt.Sprintf("Profile %s is authenticated (%s).\nExpires: %s\nScope: %s\nCredential storage: %s", s.Profile, state, s.ExpiresAt.Format("2006-01-02 15:04:05Z07:00"), s.Scope, s.Storage)
+	refresh := "unavailable"
+	if s.Refreshable {
+		refresh = "automatic"
+		if s.Expired {
+			refresh = "automatic on the next authenticated command"
+		}
+	}
+	text := fmt.Sprintf(
+		"Profile %s is authenticated.\nAccess token: %s\nExpires: %s\nRefresh: %s\nScope: %s\nCredential storage: %s",
+		s.Profile,
+		state,
+		s.ExpiresAt.Local().Format("2006-01-02 15:04:05 MST"),
+		refresh,
+		s.Scope,
+		s.Storage,
+	)
 	if s.Warning != "" {
 		text += "\nWarning: " + s.Warning
+	}
+	return text
+}
+
+func (s authStatus) MarkdownText() string {
+	return authStatusMachineText(s.Status)
+}
+
+type authLoginStatus struct{ auth.Status }
+
+func (s authLoginStatus) HumanText() string {
+	text := fmt.Sprintf("Profile %s is authenticated.\nScope: %s\nCredential storage: %s", s.Profile, s.Scope, s.Storage)
+	if s.Warning != "" {
+		text += "\nWarning: " + s.Warning
+	}
+	return text
+}
+
+func (s authLoginStatus) MarkdownText() string {
+	return authStatusMachineText(s.Status)
+}
+
+func authStatusMachineText(status auth.Status) string {
+	if !status.Authenticated {
+		return fmt.Sprintf("Profile %s is not authenticated.", status.Profile)
+	}
+	state := "valid"
+	if status.Expired {
+		state = "expired"
+	}
+	text := fmt.Sprintf(
+		"Profile %s is authenticated (%s).\nExpires: %s\nScope: %s\nCredential storage: %s",
+		status.Profile,
+		state,
+		status.ExpiresAt.Format("2006-01-02 15:04:05Z07:00"),
+		status.Scope,
+		status.Storage,
+	)
+	if status.Warning != "" {
+		text += "\nWarning: " + status.Warning
 	}
 	return text
 }
@@ -41,15 +96,12 @@ func newAuthCommand(talento *app.App) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			options := auth.LoginOptions{Profile: profile, NoOpen: noOpen}
-			if noOpen {
-				options.URLSink = func(value string) { _, _ = fmt.Fprintln(talento.Stderr, "Open this URL to authenticate:\n"+value) }
-			}
+			options := auth.LoginOptions{Profile: profile, NoOpen: noOpen, URLSink: authLoginURLSink(talento, noOpen)}
 			status, err := service.Login(cmd.Context(), options)
 			if err != nil {
 				return err
 			}
-			return talento.Output().Success(authStatus{status}, "Authenticated.", []baseoutput.Breadcrumb{
+			return talento.Output().Success(authLoginStatus{status}, "Authenticated.", []baseoutput.Breadcrumb{
 				app.Breadcrumb("inspect", "talento commands --available --json", "Inspect commands allowed by this grant."),
 			}, map[string]any{"profile": profile})
 		},
@@ -131,6 +183,24 @@ func newAuthCommand(talento *app.App) *cobra.Command {
 	}
 	command.AddCommand(login, logout, status, refresh)
 	return command
+}
+
+func authLoginURLSink(talento *app.App, noOpen bool) func(string) {
+	structured := talento.Global.JSON || talento.Global.Markdown || talento.Global.Agent || talento.Global.JQ != ""
+	if structured && !noOpen {
+		return nil
+	}
+
+	return func(value string) {
+		if noOpen {
+			_, _ = fmt.Fprintln(talento.Stderr, "Open this URL to authenticate:\n"+value)
+		} else {
+			_, _ = fmt.Fprintln(talento.Stderr, "Opening your browser to sign in to TalentoHQ...")
+		}
+		if !structured {
+			_, _ = fmt.Fprintln(talento.Stderr, "Waiting for authorization in the browser (up to 5 minutes)...")
+		}
+	}
 }
 
 func loginProfile(talento *app.App) (string, error) {

@@ -201,10 +201,7 @@ func runInteractiveSetup(ctx context.Context, talento *app.App, assets fs.FS, de
 			view.Next = authLoginCommand(profile, options)
 			return clioutput.WithRenderedData(clioutput.Auth("setup stopped before authentication"), view)
 		}
-		var sink func(string)
-		if options.NoOpen {
-			sink = func(value string) { _, _ = fmt.Fprintln(talento.Stderr, "Open this URL to authenticate:\n"+value) }
-		}
+		sink := authLoginURLSink(talento, options.NoOpen)
 		if _, err := deps.Login(ctx, profile, options.NoOpen, options.AllowFileCredentials, sink); err != nil {
 			return setupFailure(view, "authentication", err, authLoginCommand(profile, options))
 		}
@@ -585,7 +582,7 @@ func maybeOfferAuthentication(cmd *cobra.Command, talento *app.App, deps setupDe
 		return err
 	}
 	if !status.Authenticated || status.Expired {
-		if _, err := deps.Login(cmd.Context(), profile, false, false, nil); err != nil {
+		if _, err := deps.Login(cmd.Context(), profile, false, false, authLoginURLSink(talento, false)); err != nil {
 			return err
 		}
 		status, err = deps.Status(profile, false)

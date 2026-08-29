@@ -652,3 +652,21 @@ func TestStatusNeverSerializesCredentialMaterial(t *testing.T) {
 		}
 	}
 }
+
+func TestBrowserAuthorizationErrorExplainsTimeoutAndCancellation(t *testing.T) {
+	timedOut := browserAuthorizationError(context.DeadlineExceeded)
+	if !strings.Contains(timedOut.Error(), "timed out after 5 minutes") || !strings.Contains(timedOut.Error(), "talento auth login") {
+		t.Fatalf("timeout error = %v", timedOut)
+	}
+
+	canceled := browserAuthorizationError(context.Canceled)
+	if !strings.Contains(canceled.Error(), "canceled while waiting for browser authorization") {
+		t.Fatalf("cancellation error = %v", canceled)
+	}
+
+	callbackFailure := errors.New("state mismatch")
+	wrapped := browserAuthorizationError(callbackFailure)
+	if !errors.Is(wrapped, callbackFailure) || !strings.Contains(wrapped.Error(), "wait for browser authorization") {
+		t.Fatalf("callback error = %v", wrapped)
+	}
+}

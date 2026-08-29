@@ -84,6 +84,7 @@ type Status struct {
 	Authenticated bool      `json:"authenticated"`
 	ExpiresAt     time.Time `json:"expires_at,omitempty"`
 	Expired       bool      `json:"expired,omitempty"`
+	Refreshable   bool      `json:"-"`
 	Scope         string    `json:"scope,omitempty"`
 	Issuer        string    `json:"issuer,omitempty"`
 	Resource      string    `json:"resource,omitempty"`
@@ -172,7 +173,7 @@ func (s *Service) Login(ctx context.Context, opts LoginOptions) (Status, error) 
 	}
 	result := <-callback
 	if result.err != nil {
-		return Status{}, result.err
+		return Status{}, browserAuthorizationError(result.err)
 	}
 
 	token, err := s.exchangeCode(ctx, discovery.Authorization, registration, redirectURI, verifier, result.code)
@@ -397,12 +398,23 @@ func (s *Service) statusFromCredentials(profile string, credentials Credentials)
 		Authenticated: true,
 		ExpiresAt:     credentials.ExpiresAt,
 		Expired:       !credentials.ExpiresAt.After(s.Now()),
+		Refreshable:   credentials.RefreshToken != "",
 		Scope:         credentials.Scope,
 		Issuer:        credentials.Issuer,
 		Resource:      credentials.Resource,
 		Storage:       storage,
 		Warning:       s.Credentials.Warning(),
 	}
+}
+
+func browserAuthorizationError(err error) error {
+	if errors.Is(err, context.DeadlineExceeded) || strings.Contains(err.Error(), "authentication timeout waiting for callback") {
+		return fmt.Errorf("authentication timed out after 5 minutes waiting for browser authorization; run `talento auth login` again: %w", err)
+	}
+	if errors.Is(err, context.Canceled) {
+		return fmt.Errorf("authentication was canceled while waiting for browser authorization: %w", err)
+	}
+	return fmt.Errorf("wait for browser authorization: %w", err)
 }
 
 func (s *Service) Logout(ctx context.Context, profile string) (LogoutResult, error) {
