@@ -19,7 +19,7 @@ func (fn runnerFunc) Run(ctx context.Context, executable string, args, environme
 }
 
 func TestAdapterCapabilityCatalog(t *testing.T) {
-	want := []string{"claude-code", "codex", "copilot", "cursor", "gemini", "opencode", "windsurf"}
+	want := []string{"claude-code", "codex", "copilot", "cursor", "gemini", "grok", "opencode", "windsurf"}
 	got := make([]string, 0, len(SupportedAgents))
 	for _, agent := range SupportedAgents {
 		adapter, ok := AdapterByID(agent.ID)
@@ -44,6 +44,36 @@ func TestAdapterCapabilityCatalog(t *testing.T) {
 	}
 	if _, ok := AgentByID("future-agent"); ok {
 		t.Fatal("unknown agent unexpectedly resolved")
+	}
+}
+
+func TestGrokAdapterUsesNativeSkillDirectories(t *testing.T) {
+	agent, ok := AgentByID("grok")
+	if !ok {
+		t.Fatal("grok adapter is missing")
+	}
+	if agent.Name != "Grok" || agent.Executable != "grok" || agent.UserPath != ".grok/skills/talento" || agent.ProjectPath != ".grok/skills/talento" || agent.DetectionPath != ".grok" || agent.SingleFile || agent.DependsOnSharedSkill {
+		t.Fatalf("grok adapter = %#v", agent)
+	}
+}
+
+func TestGrokDetectionUsesGrokExecutable(t *testing.T) {
+	grok, ok := AdapterByID("grok")
+	if !ok {
+		t.Fatal("grok adapter is missing")
+	}
+	environment := AdapterEnvironment{
+		Home: t.TempDir(),
+		LookPath: func(name string) (string, error) {
+			if name != "grok" {
+				t.Fatalf("looked up %q", name)
+			}
+			return "/opt/tools/grok", nil
+		},
+	}
+	detection := grok.Detect(context.Background(), environment)
+	if !detection.Detected || detection.ExecutablePath != "/opt/tools/grok" || detection.DetectedBy != "executable" {
+		t.Fatalf("grok executable detection = %#v", detection)
 	}
 }
 

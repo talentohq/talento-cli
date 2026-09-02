@@ -14,7 +14,7 @@ func TestExplicitArtifactAllowlist(t *testing.T) {
 	allowed := []string{
 		"talento_0.1.0_darwin_amd64.tar.gz", "talento_0.1.0_darwin_arm64.tar.gz",
 		"talento_0.1.0_linux_amd64.tar.gz", "talento_0.1.0_linux_arm64.tar.gz",
-		"talento_0.1.0_linux_amd64.deb", "talento-codex-plugin_0.1.0.zip",
+		"talento_0.1.0_linux_amd64.deb", "talento-codex-plugin_0.1.0.zip", "talento-grok-wrapper_0.1.0.zip",
 		"checksums.txt", "checksums.txt.sig", "checksums.txt.sigstore.json", "install.sh",
 	}
 	for _, name := range allowed {

@@ -49,6 +49,7 @@ func main() {
 		"talento-codex-plugin":       codex,
 		"talento-claude-code-plugin": claude,
 		"talento-gemini-wrapper":     canonical,
+		"talento-grok-wrapper":       canonical,
 		"talento-copilot-wrapper":    canonical,
 		"talento-opencode-wrapper":   canonical,
 		"talento-cursor-wrapper":     {"talento.mdc": []byte(wrapper("cursor"))},

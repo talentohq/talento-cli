@@ -72,6 +72,29 @@ func TestManagedInstallUpdateBackupAndRemove(t *testing.T) {
 	}
 }
 
+func TestGrokUserInstallWritesNativeSkillPath(t *testing.T) {
+	home := t.TempDir()
+	store := config.NewStore(filepath.Join(t.TempDir(), "config.json"))
+	assets := fstest.MapFS{
+		"skills/talento/SKILL.md": &fstest.MapFile{Data: []byte("canonical-grok\n"), Mode: 0o644},
+	}
+	manager := NewManager(assets, store, home)
+	result, err := manager.Install(InstallOptions{Agents: []string{"grok"}, Scope: "user"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Installed) == 0 {
+		t.Fatal("grok install wrote no files")
+	}
+	data, err := os.ReadFile(filepath.Join(home, ".grok", "skills", "talento", "SKILL.md"))
+	if err != nil || string(data) != "canonical-grok\n" {
+		t.Fatalf("native grok skill = %q, err = %v", data, err)
+	}
+	if _, err := os.Stat(filepath.Join(home, ".grok", "skills", "talento", ".talento-integration.json")); !os.IsNotExist(err) {
+		t.Fatalf("grok unexpectedly received a Codex/Claude integration manifest: %v", err)
+	}
+}
+
 func TestSingleFileWrappersPointAtCanonicalSkill(t *testing.T) {
 	for _, id := range []string{"cursor", "windsurf"} {
 		agent, _ := AgentByID(id)

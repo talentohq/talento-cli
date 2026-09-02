@@ -207,6 +207,7 @@ var adapters = []Adapter{
 	managedFileAdapter{agent: Agent{ID: "claude-code", Name: "Claude Code", Executable: "claude", UserPath: ".claude/skills/talento", ProjectPath: ".claude/skills/talento", DetectionPath: ".claude"}},
 	managedFileAdapter{agent: Agent{ID: "codex", Name: "Codex", Executable: "codex", UserPath: ".codex/skills/talento", ProjectPath: ".codex/skills/talento", DetectionPath: ".codex"}},
 	managedFileAdapter{agent: Agent{ID: "gemini", Name: "Gemini CLI", Executable: "gemini", UserPath: ".gemini/skills/talento", ProjectPath: ".gemini/skills/talento", DetectionPath: ".gemini"}},
+	managedFileAdapter{agent: Agent{ID: "grok", Name: "Grok", Executable: "grok", UserPath: ".grok/skills/talento", ProjectPath: ".grok/skills/talento", DetectionPath: ".grok"}},
 	managedFileAdapter{agent: Agent{ID: "copilot", Name: "GitHub Copilot CLI", Executable: "copilot", UserPath: ".copilot/skills/talento", ProjectPath: ".github/skills/talento", DetectionPath: ".copilot"}},
 	managedFileAdapter{agent: Agent{ID: "cursor", Name: "Cursor", Executable: "cursor", UserPath: ".cursor/rules/talento.mdc", ProjectPath: ".cursor/rules/talento.mdc", DetectionPath: ".cursor", SingleFile: true, DependsOnSharedSkill: true}},
 	managedFileAdapter{agent: Agent{ID: "windsurf", Name: "Windsurf", Executable: "windsurf", UserPath: ".codeium/windsurf/memories/talento.md", ProjectPath: ".windsurf/rules/talento.md", DetectionPath: ".codeium/windsurf", SingleFile: true, DependsOnSharedSkill: true}},

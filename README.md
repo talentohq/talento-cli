@@ -355,7 +355,7 @@ talento skill update --agent codex --scope user
 talento skill remove --agent codex --scope user
 ```
 
-Supported IDs are `claude-code`, `codex`, `gemini`, `copilot`, `cursor`, `windsurf`, and `opencode`.
+Supported IDs are `claude-code`, `codex`, `gemini`, `grok`, `copilot`, `cursor`, `windsurf`, and `opencode`.
 Use `--scope project` to install in the current project instead of the user scope. The CLI changes
 only files it owns, preserves user modifications, and requires `--force` before replacing a modified
 managed file; forced replacement creates a timestamped backup.

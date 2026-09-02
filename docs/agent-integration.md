@@ -16,7 +16,7 @@ mutates credentials, or opens a browser. Compatible clients receive the shared s
 `~/.agents/skills/talento`; dedicated client paths receive generated copies or lightweight wrappers.
 Removing an adapter keeps the canonical skill while another installed wrapper still references it
 and removes it with the last dependent wrapper. Supported IDs are `claude-code`, `codex`, `gemini`,
-`copilot`, `cursor`, `windsurf`, and `opencode`.
+`grok`, `copilot`, `cursor`, `windsurf`, and `opencode`.
 
 Each supported client is represented by a capability adapter with explicit detection, install,
 remove, diagnosis, version-probe, and scope support. All current mutations are managed-file-backed;
