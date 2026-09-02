@@ -10,53 +10,72 @@ URL or paste an API token. TalentoHQ remains authoritative for company access, e
 roles, permissions, visibility, calculations, approvals, and whether a write is previewed or
 committed.
 
-> The CLI is currently a preview. There are no packaged
-> [GitHub releases](https://github.com/talentohq/talento-cli/releases) yet; install it from source
-> with Go for now.
-
 ## Install
 
-You need [Go](https://go.dev/doc/install) 1.26.7 or newer. The CLI supports macOS, Linux, and
-Windows on amd64 and arm64.
+The CLI supports macOS, Linux, and Windows on amd64 and arm64.
 
-### Install with Go
+### Homebrew (macOS, Linux)
 
 ```sh
-go install github.com/talentohq/talento-cli/cmd/talento@latest
+brew tap talentohq/tap
+brew install --cask talento
 talento version
 ```
 
-`go install` writes the binary to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is unset. If
-your shell cannot find `talento`, add that directory to `PATH`. For example, in Bash or Zsh:
-
-```sh
-export PATH="$(go env GOPATH)/bin:$PATH"
-talento version
-```
-
-In PowerShell:
+### Scoop (Windows)
 
 ```powershell
-$env:Path = "$(go env GOPATH)\bin;$env:Path"
+scoop bucket add talentohq https://github.com/talentohq/scoop-bucket
+scoop install talento
 talento version
 ```
 
-After installation, `talento upgrade` uses the same Go toolchain to build the latest version and
-transactionally replace the active executable.
+### Verified script (macOS, Linux)
 
-### Build a checkout
+Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
 
 ```sh
-git clone https://github.com/talentohq/talento-cli.git
-cd talento-cli
-go build -o talento ./cmd/talento
-./talento version
+curl -fsSL https://github.com/talentohq/talento-cli/releases/latest/download/install.sh | sh
+talento version
 ```
 
-Homebrew, Scoop, Nix, deb/rpm/apk packages, signed archives, and verified shell and PowerShell
-installers are planned release channels. They are not available until the first preview release is
-published. See [Distribution and verification](docs/distribution.md) for the packaging and
-signature contract.
+The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.0`.
+
+### Verified script (Windows)
+
+Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then in PowerShell 5.1 or 7:
+
+```powershell
+irm https://github.com/talentohq/talento-cli/releases/latest/download/install.ps1 | iex
+talento version
+```
+
+Stable Windows installs also pin the Authenticode publisher. Use the **release asset** `install.ps1`, not the copy in this repository. Default destination is `%LOCALAPPDATA%\Talento\bin`.
+
+### Nix
+
+```sh
+nix profile install github:talentohq/talento-cli/v1.0.0
+# or one-shot
+nix run github:talentohq/talento-cli/v1.0.0 -- version
+```
+
+### Go
+
+You need [Go](https://go.dev/doc/install) 1.26.7 or newer.
+
+```sh
+go install github.com/talentohq/talento-cli/cmd/talento@v1.0.0
+talento version
+```
+
+`go install` writes the binary to `GOBIN`, or to `$(go env GOPATH)/bin` when `GOBIN` is unset.
+
+### Linux packages
+
+Debian/Ubuntu (`deb`), Fedora/RHEL (`rpm`), and Alpine (`apk`) packages are attached to each [GitHub release](https://github.com/talentohq/talento-cli/releases).
+
+See [Distribution and verification](docs/distribution.md) for checksum, Sigstore, attestation, and `talento upgrade` behavior.
 
 ## Quickstart
 
