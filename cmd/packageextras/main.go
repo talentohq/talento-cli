@@ -78,14 +78,6 @@ func main() {
 const windowsPublisherPlaceholder = "__TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER__"
 
 func stageInstallers(output, windowsPublisher string) error {
-	if strings.ContainsAny(windowsPublisher, "\r\n") {
-		return fmt.Errorf("Windows publisher must be a single-line certificate subject")
-	}
-	for _, current := range windowsPublisher {
-		if current < 0x20 || current > 0x7e {
-			return fmt.Errorf("Windows publisher must contain printable ASCII only for Windows PowerShell 5.1")
-		}
-	}
 	shell, err := os.ReadFile("install.sh")
 	if err != nil {
 		return fmt.Errorf("read install.sh: %w", err)
@@ -97,8 +89,18 @@ func stageInstallers(output, windowsPublisher string) error {
 	if bytes.Count(powershell, []byte(windowsPublisherPlaceholder)) != 1 {
 		return fmt.Errorf("install.ps1 must contain the Windows publisher placeholder exactly once")
 	}
-	escapedPublisher := strings.ReplaceAll(windowsPublisher, "'", "''")
-	powershell = bytes.ReplaceAll(powershell, []byte(windowsPublisherPlaceholder), []byte(escapedPublisher))
+	if windowsPublisher != "" {
+		if strings.ContainsAny(windowsPublisher, "\r\n") {
+			return fmt.Errorf("Windows publisher must be a single-line certificate subject")
+		}
+		for _, current := range windowsPublisher {
+			if current < 0x20 || current > 0x7e {
+				return fmt.Errorf("Windows publisher must contain printable ASCII only for Windows PowerShell 5.1")
+			}
+		}
+		escapedPublisher := strings.ReplaceAll(windowsPublisher, "'", "''")
+		powershell = bytes.ReplaceAll(powershell, []byte(windowsPublisherPlaceholder), []byte(escapedPublisher))
+	}
 	if err := os.MkdirAll(output, 0o755); err != nil {
 		return err
 	}

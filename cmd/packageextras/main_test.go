@@ -116,3 +116,26 @@ func TestStageInstallersRejectsUnsafePublisher(t *testing.T) {
 		}
 	}
 }
+
+func TestStageInstallersKeepsPlaceholderWithoutPublisher(t *testing.T) {
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Clean(filepath.Join(workingDirectory, "../.."))
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(workingDirectory) })
+	output := t.TempDir()
+	if err := stageInstallers(output, ""); err != nil {
+		t.Fatal(err)
+	}
+	powershell, err := os.ReadFile(filepath.Join(output, "install.ps1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(powershell), windowsPublisherPlaceholder) {
+		t.Fatal("staged PowerShell installer dropped the publisher placeholder")
+	}
+}

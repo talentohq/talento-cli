@@ -11,7 +11,7 @@ before:
     - go test ./...
     - go run ./cmd/schemagen -check
     - sh -c '{{ if .IsSnapshot }}echo "Skipping Nix release stamp check for snapshot {{ .Version }}"{{ else }}scripts/stamp-nix-version.sh --check {{ .Version }}{{ end }}'
-    - go run ./cmd/packageextras --version {{ .Version }} --output release-extra --windows-publisher '{{ .Env.TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER }}'
+    - go run ./cmd/packageextras --version {{ .Version }} --output release-extra
     - go run ./cmd/packagecompletions --output release-extra/completions
 
 builds:
