@@ -108,12 +108,12 @@ func TestProjectProfilePrecedenceAndExplicitBypass(t *testing.T) {
 	if err := store.TrustProject(project); err != nil {
 		t.Fatal(err)
 	}
-	trustedProject := projectTestApp(store, projectDir)
+	trustedProject := projectTestApp(t, store, projectDir)
 	trustedProject.Global.Agent = true
 	if got, err := trustedProject.ResolveProfile(true); err != nil || got != "project" {
 		t.Fatalf("trusted project profile=%q err=%v", got, err)
 	}
-	globalFallback := projectTestApp(store, t.TempDir())
+	globalFallback := projectTestApp(t, store, t.TempDir())
 	globalFallback.Global.Agent = true
 	if got, err := globalFallback.ResolveProfile(true); err != nil || got != "global" {
 		t.Fatalf("global profile=%q err=%v", got, err)
@@ -128,7 +128,7 @@ func TestProjectProfileTrustOnceAlwaysCancelAndStale(t *testing.T) {
 	}
 
 	promptCalls := 0
-	application := projectTestApp(store, projectDir)
+	application := projectTestApp(t, store, projectDir)
 	application.ProjectTrustPrompt = func(_ config.ProjectProfile, state config.ProjectTrustState) (ProjectTrustDecision, error) {
 		promptCalls++
 		if state != config.ProjectUntrusted {
@@ -152,14 +152,14 @@ func TestProjectProfileTrustOnceAlwaysCancelAndStale(t *testing.T) {
 		t.Fatalf("once persisted trust: %#v", cfg.ProjectTrust)
 	}
 
-	always := projectTestApp(store, projectDir)
+	always := projectTestApp(t, store, projectDir)
 	always.ProjectTrustPrompt = func(_ config.ProjectProfile, _ config.ProjectTrustState) (ProjectTrustDecision, error) {
 		return ProjectTrustAlways, nil
 	}
 	if _, err := always.ResolveProfile(true); err != nil {
 		t.Fatal(err)
 	}
-	noninteractive := projectTestApp(store, projectDir)
+	noninteractive := projectTestApp(t, store, projectDir)
 	noninteractive.Global.Agent = true
 	if got, err := noninteractive.ResolveProfile(true); err != nil || got != "acme" {
 		t.Fatalf("persisted profile=%q err=%v", got, err)
@@ -172,7 +172,7 @@ func TestProjectProfileTrustOnceAlwaysCancelAndStale(t *testing.T) {
 		t.Fatalf("stale error = %v", err)
 	}
 
-	cancel := projectTestApp(store, projectDir)
+	cancel := projectTestApp(t, store, projectDir)
 	cancel.ProjectTrustPrompt = func(_ config.ProjectProfile, state config.ProjectTrustState) (ProjectTrustDecision, error) {
 		if state != config.ProjectStale {
 			t.Fatalf("state = %s", state)
@@ -192,7 +192,7 @@ func TestProjectTrustAlwaysBindsBytesReadBeforeThePrompt(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	application := projectTestApp(store, projectDir)
+	application := projectTestApp(t, store, projectDir)
 	application.ProjectTrustPrompt = func(project config.ProjectProfile, state config.ProjectTrustState) (ProjectTrustDecision, error) {
 		if project.Profile != "acme" || state != config.ProjectUntrusted {
 			t.Fatalf("prompt project=%#v state=%s", project, state)
@@ -244,7 +244,7 @@ func TestProjectProfileNonInteractiveModesNeverPrompt(t *testing.T) {
 				t.Setenv(test.env, "1")
 			}
 			prompted := false
-			application := projectTestApp(store, projectDir)
+			application := projectTestApp(t, store, projectDir)
 			application.Global = &test.options
 			application.ProjectTrustPrompt = func(_ config.ProjectProfile, _ config.ProjectTrustState) (ProjectTrustDecision, error) {
 				prompted = true
@@ -259,7 +259,7 @@ func TestProjectProfileNonInteractiveModesNeverPrompt(t *testing.T) {
 		})
 	}
 
-	redirected := projectTestApp(store, projectDir)
+	redirected := projectTestApp(t, store, projectDir)
 	redirected.InteractiveCheck = nil
 	redirected.Stdin = strings.NewReader("a\n")
 	redirected.Stdout = &bytes.Buffer{}
@@ -271,7 +271,7 @@ func TestProjectProfileNonInteractiveModesNeverPrompt(t *testing.T) {
 func TestProjectProfileMissingGlobalProfileFailsBeforeCredentialOrMCPUse(t *testing.T) {
 	projectDir := writeAppProjectConfig(t, `{"profile":"missing"}`)
 	store := config.NewStore(filepath.Join(t.TempDir(), "config.json"))
-	application := projectTestApp(store, projectDir)
+	application := projectTestApp(t, store, projectDir)
 	application.Global.Agent = true
 	application.Paths.CredentialDir = filepath.Join(t.TempDir(), "must-not-be-used")
 	if _, _, err := application.MCP(context.Background()); err == nil || !strings.Contains(err.Error(), `profile "missing"`) {
@@ -285,7 +285,7 @@ func TestUntrustedProjectFailsBeforeCredentialOrMCPUse(t *testing.T) {
 	if _, err := store.CreateProfile("acme"); err != nil {
 		t.Fatal(err)
 	}
-	application := projectTestApp(store, projectDir)
+	application := projectTestApp(t, store, projectDir)
 	application.Global.Agent = true
 	application.Paths.CredentialDir = filepath.Join(t.TempDir(), "must-not-be-used")
 	if _, _, err := application.MCP(context.Background()); err == nil || !strings.Contains(err.Error(), "trust-project") {
@@ -309,7 +309,10 @@ func TestProjectTrustPromptSanitizesFilesystemText(t *testing.T) {
 	}
 }
 
-func projectTestApp(store *config.Store, projectDir string) *App {
+func projectTestApp(t *testing.T, store *config.Store, projectDir string) *App {
+	t.Helper()
+	t.Setenv("CI", "")
+	t.Setenv("TALENTO_NONINTERACTIVE", "")
 	return &App{
 		Config: store, Global: &GlobalOptions{}, Stdin: strings.NewReader(""),
 		Stdout: &bytes.Buffer{}, Stderr: &bytes.Buffer{}, InteractiveCheck: func() bool { return true },
