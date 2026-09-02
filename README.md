@@ -14,13 +14,18 @@ committed.
 
 Packaged releases cover macOS and Linux on amd64 and arm64. Windows is not published until Authenticode signing is available; you can still build from source with Go.
 
-### Homebrew (macOS, Linux)
+### Homebrew (macOS)
+
+Homebrew 6 will not load a third-party cask until you trust the tap:
 
 ```sh
 brew tap talentohq/tap
+brew trust talentohq/tap
 brew install --cask talento
 talento version
 ```
+
+Linux Homebrew does not install casks. Use the verified script or a `.deb` / `.rpm` / `.apk` from the GitHub release.
 
 ### Verified script (macOS, Linux)
 
