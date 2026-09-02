@@ -34,6 +34,18 @@ func TestExplicitArtifactAllowlist(t *testing.T) {
 	if _, err := allowlist.ValidateDirectory(directory); err != nil {
 		t.Fatal(err)
 	}
+	if err := os.WriteFile(filepath.Join(directory, "CHANGELOG.md"), []byte("notes"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	names, err := allowlist.ValidateDirectory(directory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range names {
+		if name == "CHANGELOG.md" {
+			t.Fatal("GoReleaser CHANGELOG.md was treated as a release artifact")
+		}
+	}
 	if err := os.WriteFile(filepath.Join(directory, "secret.env"), []byte("bad"), 0o600); err != nil {
 		t.Fatal(err)
 	}

@@ -134,11 +134,6 @@ release:
     - glob: release-extra/*.zip
     - glob: release-extra/installers/install.sh
 
+# GitHub notes come from `gh release create --generate-notes`; do not attach CHANGELOG.md.
 changelog:
-  sort: asc
-  filters:
-    exclude:
-      - '^docs:'
-      - '^test:'
-      - '^chore:'
-      - '^Merge'
+  disable: true

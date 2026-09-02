@@ -38,6 +38,15 @@ func Load(path string) (*Allowlist, error) {
 	return &allowlist, nil
 }
 
+func isPackagingMetadata(name string) bool {
+	switch name {
+	case "artifacts.json", "metadata.json", "config.yaml", "CHANGELOG.md":
+		return true
+	default:
+		return false
+	}
+}
+
 func (a *Allowlist) Allows(name string) bool {
 	name = filepath.Base(name)
 	for _, pattern := range a.compiled {
@@ -58,7 +67,7 @@ func (a *Allowlist) ValidateDirectory(directory string) ([]string, error) {
 		if entry.IsDir() || entry.Type()&os.ModeSymlink != 0 {
 			continue
 		}
-		if entry.Name() == "artifacts.json" || entry.Name() == "metadata.json" || entry.Name() == "config.yaml" {
+		if isPackagingMetadata(entry.Name()) {
 			continue
 		}
 		if !a.Allows(entry.Name()) {
