@@ -121,6 +121,8 @@ func TestProjectProfilePrecedenceAndExplicitBypass(t *testing.T) {
 }
 
 func TestProjectProfileTrustOnceAlwaysCancelAndStale(t *testing.T) {
+	t.Setenv("CI", "")
+	t.Setenv("TALENTO_NONINTERACTIVE", "")
 	projectDir := writeAppProjectConfig(t, `{"profile":"acme"}`)
 	store := config.NewStore(filepath.Join(t.TempDir(), "config.json"))
 	if _, err := store.CreateProfile("acme"); err != nil {
@@ -185,6 +187,8 @@ func TestProjectProfileTrustOnceAlwaysCancelAndStale(t *testing.T) {
 }
 
 func TestProjectTrustAlwaysBindsBytesReadBeforeThePrompt(t *testing.T) {
+	t.Setenv("CI", "")
+	t.Setenv("TALENTO_NONINTERACTIVE", "")
 	projectDir := writeAppProjectConfig(t, `{"profile":"acme"}`)
 	store := config.NewStore(filepath.Join(t.TempDir(), "config.json"))
 	for _, name := range []string{"acme", "beta"} {
@@ -311,8 +315,6 @@ func TestProjectTrustPromptSanitizesFilesystemText(t *testing.T) {
 
 func projectTestApp(t *testing.T, store *config.Store, projectDir string) *App {
 	t.Helper()
-	t.Setenv("CI", "")
-	t.Setenv("TALENTO_NONINTERACTIVE", "")
 	return &App{
 		Config: store, Global: &GlobalOptions{}, Stdin: strings.NewReader(""),
 		Stdout: &bytes.Buffer{}, Stderr: &bytes.Buffer{}, InteractiveCheck: func() bool { return true },
