@@ -130,4 +130,24 @@ grep -F "staging evidence is stale" "$tmp/stale.err" >/dev/null || {
   fail "stale evidence did not report the expected failure"
 }
 
+# Relative REPORT path from a CWD outside the repo must still resolve after the encoder cds to $repo.
+cp "$tmp/valid.json" "$tmp/relative-report.json"
+if (
+  cd "$tmp"
+  sh "$repo/scripts/prepare-staging-evidence.sh" ./relative-report.json >"$tmp/rel.out" 2>"$tmp/rel.err"
+); then
+  :
+else
+  cat "$tmp/rel.err" >&2
+  fail "prepare-staging-evidence rejected relative evidence path from outside the repo"
+fi
+rel_sha=$(awk '/^sha256: / {print $2; exit}' "$tmp/rel.out")
+[ "$rel_sha" = "$valid_sha" ] || fail "relative-path digest does not match file SHA-256"
+rel_b64=$(awk '/^base64: / {sub(/^base64: /, ""); print; exit}' "$tmp/rel.out")
+[ -n "$rel_b64" ] || fail "relative-path stdout missing base64 line"
+printf '%s' "$rel_b64" | base64 -d >"$tmp/rel-decoded" 2>/dev/null || \
+  printf '%s' "$rel_b64" | base64 -D >"$tmp/rel-decoded" 2>/dev/null || \
+  fail "relative-path base64 did not decode"
+cmp -s "$tmp/valid.json" "$tmp/rel-decoded" || fail "relative-path decoded base64 does not match evidence bytes"
+
 echo "prepare-staging-evidence tests passed"

@@ -31,6 +31,11 @@ repo=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 evidence_file=$1
 [ -f "$evidence_file" ] || fail "evidence file is not a regular file: $evidence_file"
 
+# Absolute path before cd into the repo — the gate opens TALENTO_STAGING_EVIDENCE_FILE from $repo.
+evidence_dir=$(CDPATH= cd -- "$(dirname -- "$evidence_file")" && pwd) || fail "cannot resolve evidence directory"
+evidence_file=$evidence_dir/$(basename -- "$evidence_file")
+[ -f "$evidence_file" ] || fail "evidence file is not a regular file: $evidence_file"
+
 command -v jq >/dev/null 2>&1 || fail "jq is required to validate staging evidence"
 
 # Dummy gate values only when unset — never overwrite operator-exported secrets.
