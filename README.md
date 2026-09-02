@@ -10,6 +10,8 @@ URL or paste an API token. TalentoHQ remains authoritative for company access, e
 roles, permissions, visibility, calculations, approvals, and whether a write is previewed or
 committed.
 
+See [CHANGELOG.md](CHANGELOG.md) for release history.
+
 ## Install
 
 Packaged releases cover macOS and Linux on amd64 and arm64. Windows is not published until Authenticode signing is available; you can still build from source with Go.
@@ -36,14 +38,14 @@ curl -fsSL https://github.com/talentohq/talento-cli/releases/latest/download/ins
 talento version
 ```
 
-The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.1`.
+The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.2`.
 
 ### Nix
 
 ```sh
-nix profile install github:talentohq/talento-cli/v1.0.1
+nix profile install github:talentohq/talento-cli/v1.0.2
 # or one-shot
-nix run github:talentohq/talento-cli/v1.0.1 -- version
+nix run github:talentohq/talento-cli/v1.0.2 -- version
 ```
 
 ### Go
@@ -51,7 +53,7 @@ nix run github:talentohq/talento-cli/v1.0.1 -- version
 You need [Go](https://go.dev/doc/install) 1.26.7 or newer.
 
 ```sh
-go install github.com/talentohq/talento-cli/cmd/talento@v1.0.1
+go install github.com/talentohq/talento-cli/cmd/talento@v1.0.2
 talento version
 ```
 
@@ -350,9 +352,10 @@ integrations directly:
 
 ```sh
 talento skill status
+talento skill install --agent grok --scope user
 talento skill install --agent codex --scope user
-talento skill update --agent codex --scope user
-talento skill remove --agent codex --scope user
+talento skill update --agent grok --scope user
+talento skill remove --agent grok --scope user
 ```
 
 Supported IDs are `claude-code`, `codex`, `gemini`, `grok`, `copilot`, `cursor`, `windsurf`, and `opencode`.
