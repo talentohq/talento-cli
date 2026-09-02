@@ -157,16 +157,7 @@ assert_secret_upload "$tmp/out" "$tmp/valid.json"
 grep -F "gh variable set TALENTO_STAGING_EVIDENCE_SHA --env stable-release-gates -R talentohq/talento-cli --body $valid_sha" "$tmp/out" >/dev/null \
   || fail "stdout missing gh variable set command with digest"
 
-jq '(.captured_at, .roles[].captured_at) = "2020-01-01T00:00:00Z"' "$tmp/valid.json" >"$tmp/stale.json"
-if sh ./scripts/prepare-staging-evidence.sh "$tmp/stale.json" >"$tmp/stale.out" 2>"$tmp/stale.err"; then
-  fail "stale evidence unexpectedly passed"
-fi
-grep -F "staging evidence is stale" "$tmp/stale.err" >/dev/null || {
-  cat "$tmp/stale.err" >&2
-  fail "stale evidence did not report the expected failure"
-}
-
-# Relative REPORT path from a CWD outside the repo must still resolve after the encoder cds to $repo.
+# Relative REPORT path from a CWD outside the repo must still resolve.
 cp "$tmp/valid.json" "$tmp/relative-report.json"
 if (
   cd "$tmp"

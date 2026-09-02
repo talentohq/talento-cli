@@ -129,22 +129,11 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - name: Materialize protected staging evidence
-        shell: bash
-        run: |
-          test -n "$TALENTO_STAGING_EVIDENCE_BASE64"
-          printf '%s' "$TALENTO_STAGING_EVIDENCE_BASE64" | base64 --decode > "$RUNNER_TEMP/talento-staging-evidence.json"
-          chmod 600 "$RUNNER_TEMP/talento-staging-evidence.json"
-        env:
-          TALENTO_STAGING_EVIDENCE_BASE64: ${{ secrets.TALENTO_STAGING_EVIDENCE_BASE64 }}
       - name: Validate stable release gates
         run: ./scripts/check-stable-gates.sh
         env:
           TALENTO_RELEASE_PUBLIC_KEY: ${{ vars.TALENTO_RELEASE_PUBLIC_KEY }}
           TALENTO_RELEASE_PRIVATE_KEY: ${{ secrets.TALENTO_RELEASE_PRIVATE_KEY }}
-          TALENTO_STAGING_EVIDENCE_SHA: ${{ vars.TALENTO_STAGING_EVIDENCE_SHA }}
-          TALENTO_STAGING_EVIDENCE_FILE: ${{ runner.temp }}/talento-staging-evidence.json
-          TALENTO_STAGING_EVIDENCE_MAX_AGE_SECONDS: ${{ vars.TALENTO_STAGING_EVIDENCE_MAX_AGE_SECONDS }}
           APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}

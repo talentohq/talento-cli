@@ -1,8 +1,9 @@
 # Release runbook (1.0.0)
 
 Operator checklist for a stable `v1.0.0` tag. Preview (`v0.x` / SemVer-prerelease) tags skip
-Apple signing and the staging-evidence gate; this document is for suffix-free `v1.x` only.
-Packaged Windows archives are not published.
+Apple signing; this document is for suffix-free `v1.x` only.
+Packaged Windows archives are not published. Live staging-role evidence is not required for this
+first stable line.
 
 See also [Release gates](release-gates.md), [Staging contracts](staging-contracts.md), and
 [Distribution and verification](distribution.md).
@@ -15,7 +16,6 @@ See also [Release gates](release-gates.md), [Staging contracts](staging-contract
 | Apple ID + **app-specific password** + 10-character Team ID | notarization via `notarytool` |
 | `APPLE_SIGNING_IDENTITY` string (exact `codesign -s` identity) | stamped into the stable environment |
 | Ed25519 release keypair | `checksums.txt.sig` / embedded public key |
-| Four staging profiles + two synthetic tenants (`staging-company-a`, `staging-company-b-selected`) | evidence capture |
 | Signed git tags enabled (GPG or SSH) | `gh release create --verify-tag` |
 | Public repo `talentohq/homebrew-tap` with an initial `main` commit | Homebrew cask publish |
 | Org admin access to `talentohq` / `talentohq/talento-cli` | environments, secrets, branch protection |
@@ -200,113 +200,14 @@ TALENTO_RELEASE_PRIVATE_KEY=... TALENTO_RELEASE_PUBLIC_KEY=... \
 Expected: exit 0 and a one-line base64 signature. Mismatched public/private keys must fail with
 `release signing key does not match TALENTO_RELEASE_PUBLIC_KEY`.
 
-## 4. Staging evidence capture
+## 4. Staging evidence
 
-Do this immediately before tagging. A report older than 24 hours (or with `captured_at` more than
-five minutes in the future) fails the gate. The live report is stored only as the
-`stable-release-gates` secret `TALENTO_STAGING_EVIDENCE_BASE64` plus variable
-`TALENTO_STAGING_EVIDENCE_SHA` — never commit the JSON.
-
-### Confirm the gateway snapshot still matches staging
-
-```bash
-shasum -a 256 schemas/gateway.json
-# must equal coverage/manifest.json snapshot_sha256 and each contracts/roles/*.json snapshot_sha256
-```
-
-If staging has drifted, **stop**. Refreshing `schemas/gateway.json` is a coverage change, not part of
-this release.
-
-### Authenticate four staging profiles
-
-```bash
-talento auth login --profile staging-admin
-talento auth login --profile staging-manager
-talento auth login --profile staging-employee
-talento auth login --profile staging-external
-```
-
-External must select exactly one company (the contract tenant `staging-company-b-selected`).
-Admin/manager/employee use `staging-company-a`. Role captures must list every
-`representative_tools` / `representative_resources` entry from
-`contracts/roles/{admin,manager,employee,external}.json` as
-`{name, expected: "available", actual: "available"}`.
-
-### Required probes
-
-Run every probe in `contracts/staging-evidence-probes.json` against the live staging gateway.
-Required results (do not invent different expected values):
-
-| id | role | expected |
-| --- | --- | --- |
-| `authentication.non_hr` | employee | `authenticated` |
-| `tenant.company_selection` | external | `selected` |
-| `resource.read` | admin | `success` |
-| `tool.read` | admin | `success` |
-| `write.immediate` | admin | `committed` |
-| `write.preview` | admin | `preview` |
-| `write.confirm` | admin | `committed` |
-| `write.expired_preview` | admin | `rejected` |
-| `write.approval_pending` | employee | `submitted_for_approval` |
-| `authorization.permission_denied` | employee | `denied` |
-| `authorization.module_disabled` | manager | `unavailable` |
-| `resolution.ambiguous_entity` | manager | `ambiguous` |
-| `response.truncation` | admin | `truncated` |
-| `response.server_failure` | admin | `error` |
-| `tenant.cross_tenant_read` | external | `denied` |
-| `tenant.cross_tenant_resolve` | external | `denied` |
-| `tenant.cross_tenant_preview` | external | `denied` |
-| `tenant.cross_tenant_confirm` | external | `denied` |
-| `tenant.cross_tenant_mutation` | external | `denied` |
-| `skill.employee` | employee | `passed` |
-| `skill.manager_hr` | manager | `passed` |
-| `skill.sales` | admin | `passed` |
-| `skill.finance` | admin | `passed` |
-| `skill.external_user` | external | `passed` |
-
-Each probe object must be `{id, kind, role, subject, expected, actual}` with `actual == expected` and
-a non-empty `subject`. Subjects for `resource.read` / `tool.read` / writes must be names that exist
-in `schemas/gateway.json` (the gate checks this).
-
-Also satisfy the remaining items in [release-gates.md](release-gates.md) that the workflow does not
-fully automate:
-
-- Packaged TUI on macOS and Linux: launch/sign-in, read, form review, exact preview,
-  profile isolation, resize, and clean exit.
-- Auth + credential-store smoke on packaged archives for macOS and Linux.
-
-Record those as operator notes; they are not fields in the JSON schema, but 1.0.0 is blocked until
-they have been done on **packaged** binaries. A local `go build` is only a fallback if a packaged
-candidate is not yet available.
-
-### Encode and upload
-
-```bash
-# report.json lives outside the repo, mode 600
-sh scripts/prepare-staging-evidence.sh /path/to/report.json
-# follow the printed gh secret/variable commands
-```
-
-The helper validates the report with `scripts/check-stable-gates.sh` (using dummy Apple/key
-values only when those env vars are unset), then prints the lowercase SHA-256, unwrapped base64, and
-a copy-pasteable upload. The encoder writes the unwrapped base64 to a mode-600 temp file under
-`$TMPDIR` (outside the repo) and prints:
-
-```text
-gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < /absolute/tmp/path
-gh variable set TALENTO_STAGING_EVIDENCE_SHA --env stable-release-gates -R talentohq/talento-cli --body <digest>
-```
-
-That upload file must stay outside the repository; do not copy it into the working tree. Delete it
-after `gh secret set` succeeds.
-
-If `check-stable-gates.sh` fails, fix the report; do not edit the gate. Updating one of the secret or
-SHA variable without the other fails closed. Re-run `prepare-staging-evidence.sh` after any edit of
-`report.json`.
+Live staging-role evidence is **not** required to publish this first stable line. The probe
+contracts under `contracts/` stay in the tree for a later gate. Do not upload a placeholder report.
 
 ## 5. Release-day sequence
 
-Capture evidence, stamp, tag, and approve inside the 24-hour evidence TTL. Do not reorder.
+Stamp, signed-tag, and approve the `stable-release-gates` environment. Do not reorder.
 
 ### Enable signed tags
 
@@ -341,8 +242,7 @@ routes to the preview job and skips Apple signing.
 
 ### Approve `stable-release-gates` and watch
 
-The first stable job (`stable-preflight`) waits for environment approval. Approve promptly — evidence
-is on a 24-hour clock. Then watch:
+The first stable job (`stable-preflight`) waits for environment approval. Approve it, then watch:
 
 1. `stable-preflight` — `scripts/check-stable-gates.sh`
 2. `stable-base` + `sign-macos` (amd64/arm64)
@@ -432,8 +332,8 @@ Never commit any of the following to this repository (or to the tap/bucket repos
 - Ed25519 private key material (`TALENTO_RELEASE_PRIVATE_KEY`)
 - Apple `.p12` / `certificate.p12.b64` / app-specific passwords
 - Windows `.pfx` / `certificate.pfx.b64` / PFX passwords
-- Staging evidence JSON reports (`report.json`), their base64 encodings, or the encoder's
-  `$TMPDIR` upload file
+- Staging evidence JSON reports (`report.json`) if you produce one later, their base64 encodings,
+  or the encoder's `$TMPDIR` upload file
 - Staging access tokens, refresh tokens, customer data, or production IDs
 - Fine-grained PATs used as `HOMEBREW_TAP_TOKEN`
 

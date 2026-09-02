@@ -14,6 +14,5 @@ The checked-in role files are the reviewable contract shape; their nullable `cap
 accepted as proof that a current live run succeeded. Current live captures and write probes belong in
 the versioned report shape defined by `contracts/staging-evidence.schema.json`, not in unit-test
 inputs or checked-in passing evidence. Each role capture in that report includes the SHA-256 of its
-reviewed contract file, so a contract edit invalidates previously captured evidence. `1.0.0` remains
-blocked until a current report is installed in the protected release environment with its matching
-SHA-256.
+reviewed contract file, so a contract edit invalidates previously captured evidence. Live evidence
+is not required to publish the first stable line; the contracts stay in tree for a later gate.

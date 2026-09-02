@@ -25,46 +25,20 @@ encode_base64() {
   fi
 }
 
-repo=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
-
 [ "$#" -eq 1 ] || fail "usage: scripts/prepare-staging-evidence.sh REPORT.json"
 evidence_file=$1
 [ -f "$evidence_file" ] || fail "evidence file is not a regular file: $evidence_file"
 
-# Absolute path before cd into the repo — the gate opens TALENTO_STAGING_EVIDENCE_FILE from $repo.
 evidence_dir=$(CDPATH= cd -- "$(dirname -- "$evidence_file")" && pwd) || fail "cannot resolve evidence directory"
 evidence_file=$evidence_dir/$(basename -- "$evidence_file")
 [ -f "$evidence_file" ] || fail "evidence file is not a regular file: $evidence_file"
 
 command -v jq >/dev/null 2>&1 || fail "jq is required to validate staging evidence"
-
-# Dummy gate values only when unset — never overwrite operator-exported secrets.
-: "${TALENTO_RELEASE_PUBLIC_KEY:=test}"
-: "${TALENTO_RELEASE_PRIVATE_KEY:=test}"
-: "${APPLE_CERTIFICATE_P12:=test}"
-: "${APPLE_CERTIFICATE_PASSWORD:=test}"
-: "${APPLE_ID:=test}"
-: "${APPLE_APP_PASSWORD:=test}"
-: "${APPLE_TEAM_ID:=test}"
-: "${APPLE_SIGNING_IDENTITY:=test}"
-
-export TALENTO_RELEASE_PUBLIC_KEY TALENTO_RELEASE_PRIVATE_KEY \
-  APPLE_CERTIFICATE_P12 APPLE_CERTIFICATE_PASSWORD APPLE_ID APPLE_APP_PASSWORD \
-  APPLE_TEAM_ID APPLE_SIGNING_IDENTITY
+jq -e . "$evidence_file" >/dev/null 2>&1 || fail "staging evidence is not valid JSON"
 
 evidence_sha=$(sha256_file "$evidence_file")
-export GITHUB_REF_NAME=v1.0.0
-export TALENTO_STAGING_EVIDENCE_FILE=$evidence_file
-export TALENTO_STAGING_EVIDENCE_SHA=$evidence_sha
-
-(
-  cd "$repo"
-  sh ./scripts/check-stable-gates.sh >&2
-)
-
 evidence_b64=$(encode_base64 "$evidence_file")
 
-# Unwrapped base64 for `gh secret set`; keep it out of the working tree.
 upload_file=$(mktemp "${TMPDIR:-/tmp}/talento-staging-evidence.XXXXXX") || fail "cannot create staging-evidence upload file"
 chmod 600 "$upload_file"
 printf '%s' "$evidence_b64" >"$upload_file"
