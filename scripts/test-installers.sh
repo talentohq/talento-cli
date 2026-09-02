@@ -140,6 +140,17 @@ grep -F -- '--certificate-identity https://github.com/talentohq/talento-cli/.git
 
 run_installer /bin/bash "$stubs" || fail "Bash 3.2 happy-path replacement failed: $(cat "$errors")"
 
+rm -rf "$work/package"
+mkdir "$work/package"
+write_candidate "$work/package/talento"
+tar -czf "$fixture/talento_0.1.0_linux_amd64.tar.gz" -C "$work/package" .
+checksum=$(sha256_file "$fixture/talento_0.1.0_linux_amd64.tar.gz")
+printf '%s  %s\n' "$checksum" "talento_0.1.0_linux_amd64.tar.gz" > "$fixture/checksums.txt"
+printf '%s\n' fixture-bundle > "$fixture/checksums.txt.sigstore.json"
+run_installer /bin/sh "$stubs" || fail "dot-slash archive layout failed: $(cat "$errors")"
+[ -x "$install_dir/talento" ] || fail "dot-slash archive did not install an executable"
+make_archive 0.1.0
+
 original_hash=$(sha256_file "$install_dir/talento")
 TALENTO_TEST_COSIGN_EXIT=1
 export TALENTO_TEST_COSIGN_EXIT

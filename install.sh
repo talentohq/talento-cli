@@ -300,21 +300,36 @@ fi
 [ "$expected" = "$actual" ] || fail "Checksum verification failed for $asset"
 
 tar -tzf "$work/$asset" > "$work/archive-members.txt" || fail "Cannot inspect $asset"
-awk '
+# GoReleaser Linux archives name the binary "talento". macOS/BSD tar (used when
+# signed darwin archives are repacked) names it "./talento" and also emits "./".
+binary_member="$(awk '
   {
-    name = $0
-    if (name == "" || substr(name, 1, 1) == "/" || index(name, "\\") > 0) exit 1
+    raw = $0
+    sub(/\r$/, "", raw)
+    name = raw
+    if (substr(name, 1, 1) == "/" || index(name, "\\") > 0) exit 1
+    while (index(name, "./") == 1) name = substr(name, 3)
+    while (length(name) > 0 && substr(name, length(name), 1) == "/") name = substr(name, 1, length(name) - 1)
+    if (name == "" || name == ".") next
     count = split(name, parts, "/")
-    for (item_index = 1; item_index <= count; item_index++) if (parts[item_index] == "..") exit 1
-    if (name == "talento") binary_count++
+    for (item_index = 1; item_index <= count; item_index++) {
+      if (parts[item_index] == "" || parts[item_index] == "." || parts[item_index] == "..") exit 1
+    }
+    if (name == "talento") {
+      binary_count++
+      member = raw
+    }
   }
-  END { if (binary_count != 1) exit 1 }
-' "$work/archive-members.txt" || fail "$asset has an unsafe layout or does not contain exactly one top-level talento executable"
-tar -tvzf "$work/$asset" talento > "$work/archive-binary.txt" || fail "Cannot inspect the talento archive entry"
+  END {
+    if (binary_count != 1 || member == "") exit 1
+    print member
+  }
+' "$work/archive-members.txt")" || fail "$asset has an unsafe layout or does not contain exactly one top-level talento executable"
+tar -tvzf "$work/$asset" -- "$binary_member" > "$work/archive-binary.txt" || fail "Cannot inspect the talento archive entry"
 [ "$(wc -l < "$work/archive-binary.txt" | tr -d ' ')" = "1" ] || fail "$asset contains duplicate talento entries"
 [ "$(cut -c 1 "$work/archive-binary.txt")" = "-" ] || fail "The talento archive entry must be a regular file, not a link or directory"
 mkdir "$work/extract"
-tar -xOzf "$work/$asset" talento | dd of="$work/extract/talento" bs=1024 count=262145 2>/dev/null || fail "Cannot extract the talento executable"
+tar -xOzf "$work/$asset" -- "$binary_member" | dd of="$work/extract/talento" bs=1024 count=262145 2>/dev/null || fail "Cannot extract the talento executable"
 [ -f "$work/extract/talento" ] && [ ! -L "$work/extract/talento" ] || fail "The extracted talento executable is not a regular file"
 binary_size="$(wc -c < "$work/extract/talento" | tr -d ' ')"
 case "$binary_size" in *[!0-9]*|'') fail "Cannot determine the extracted executable size" ;; esac
