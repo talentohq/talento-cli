@@ -413,6 +413,7 @@ With `--json` or `--agent`, errors also include a structured code and message on
 - [Gateway coverage contract](docs/coverage.md)
 - [Distribution and verification](docs/distribution.md)
 - [Release gates](docs/release-gates.md)
+- [Release runbook](docs/release.md)
 - [Contributing](CONTRIBUTING.md)
 - [Security policy](SECURITY.md)
 

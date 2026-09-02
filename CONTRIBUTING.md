@@ -42,3 +42,5 @@ certificate. `cmd/packageextras` stamps it into the released PowerShell installe
 unstamped policy is intentionally unusable for stable direct installs. Run
 `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-installers.ps1` on Windows
 PowerShell 5.1 when changing installer behavior.
+
+The operator checklist for a stable tag lives in docs/release.md.
