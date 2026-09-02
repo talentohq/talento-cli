@@ -647,7 +647,7 @@ func newSkillCommand(talento *app.App, assets fs.FS) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				view := setupView{Scope: scope, Agents: selected, Result: result}
+				view := setupView{Status: "complete", Scope: scope, Agents: selected, Result: result, Automated: true}
 				return talento.Output().Success(view, "Managed skill operation completed.", nil, map[string]any{"operation": operation})
 			},
 		}

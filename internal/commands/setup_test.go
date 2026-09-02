@@ -321,3 +321,45 @@ func TestLoggedOutCommandCanAuthenticateAndResumeNaturally(t *testing.T) {
 		t.Fatalf("login=%d profile=%q stderr=%q", h.loginCalls, h.talento.Global.Profile, h.stderr.String())
 	}
 }
+
+func TestSkillMutationsReportManagedFilesInHumanOutput(t *testing.T) {
+	home := t.TempDir()
+	configPath := filepath.Join(t.TempDir(), "config.json")
+	store := config.NewStore(configPath)
+	assets := fstest.MapFS{"skills/talento/SKILL.md": &fstest.MapFile{Data: []byte("skill\n")}}
+	var stdout, stderr bytes.Buffer
+	talento := &app.App{
+		Paths:  config.Paths{HomeDir: home, ConfigFile: configPath},
+		Config: store,
+		Global: &app.GlobalOptions{},
+		Stdout: &stdout,
+		Stderr: &stderr,
+	}
+	marker := filepath.Join(".grok", "skills", "talento", "SKILL.md")
+	for _, step := range []struct {
+		operation string
+		prefix    string
+	}{
+		{"install", "Installed: "},
+		{"update", "Unchanged: "},
+		{"remove", "Removed: "},
+	} {
+		stdout.Reset()
+		stderr.Reset()
+		command := newSkillCommand(talento, assets)
+		command.SetArgs([]string{step.operation, "--agent", "grok", "--scope", "user"})
+		if err := command.Execute(); err != nil {
+			t.Fatalf("%s: %v", step.operation, err)
+		}
+		if stderr.Len() != 0 {
+			t.Fatalf("%s stderr = %q", step.operation, stderr.String())
+		}
+		output := stdout.String()
+		if strings.Contains(output, "Talento setup:") {
+			t.Fatalf("%s reused setup banner: %q", step.operation, output)
+		}
+		if !strings.Contains(output, step.prefix) || !strings.Contains(output, marker) {
+			t.Fatalf("%s output = %q, want %q and %q", step.operation, output, step.prefix, marker)
+		}
+	}
+}
