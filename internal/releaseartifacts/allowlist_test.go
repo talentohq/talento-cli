@@ -14,16 +14,15 @@ func TestExplicitArtifactAllowlist(t *testing.T) {
 	allowed := []string{
 		"talento_0.1.0_darwin_amd64.tar.gz", "talento_0.1.0_darwin_arm64.tar.gz",
 		"talento_0.1.0_linux_amd64.tar.gz", "talento_0.1.0_linux_arm64.tar.gz",
-		"talento_0.1.0_windows_amd64.zip", "talento_0.1.0_windows_arm64.zip",
 		"talento_0.1.0_linux_amd64.deb", "talento-codex-plugin_0.1.0.zip",
-		"checksums.txt", "checksums.txt.sig", "checksums.txt.sigstore.json", "install.sh", "install.ps1",
+		"checksums.txt", "checksums.txt.sig", "checksums.txt.sigstore.json", "install.sh",
 	}
 	for _, name := range allowed {
 		if !allowlist.Allows(name) {
 			t.Errorf("expected %s to be allowlisted", name)
 		}
 	}
-	for _, name := range []string{"config.json", "credentials.txt", "talento_0.1.0_linux_386.tar.gz", "private-repo.zip"} {
+	for _, name := range []string{"config.json", "credentials.txt", "talento_0.1.0_linux_386.tar.gz", "private-repo.zip", "talento_0.1.0_windows_amd64.zip", "install.ps1"} {
 		if allowlist.Allows(name) {
 			t.Errorf("expected %s to be rejected", name)
 		}

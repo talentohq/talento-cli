@@ -10,6 +10,5 @@ credential and customer value redacted.
 
 The CLI intentionally uses only `https://mcp.talentohq.com/mcp`, validates OAuth discovery and PKCE,
 stores secrets in the system credential store by default, and has no telemetry. Release archives are
-covered by exact-workflow-identity Sigstore verification of SHA-256 checksums and build provenance;
-stable Windows direct installs also pin the Authenticode publisher. See
-[docs/distribution.md](docs/distribution.md) for verification instructions.
+covered by exact-workflow-identity Sigstore verification of SHA-256 checksums and build provenance.
+See [docs/distribution.md](docs/distribution.md) for verification instructions.

@@ -4,7 +4,6 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"compress/gzip"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -58,6 +57,19 @@ func TestCheckEmbeddedBuildFlags(t *testing.T) {
 	}
 	if err := checkEmbeddedBuildFlags(binary, "1.2.4", "abc1234", "1720000000"); err == nil {
 		t.Fatal("mismatched embedded version unexpectedly passed")
+	}
+}
+
+func TestCheckRejectsScoopManifest(t *testing.T) {
+	if runtimeGOOS() == "windows" {
+		t.Skip("fixture binary is a POSIX shell script")
+	}
+	t.Parallel()
+	fixture := newFixture(t, "1.2.3")
+	writeFile(t, filepath.Join(fixture.options.Indexes, "talento.json"), `{"version":"1.2.3"}`)
+	err := Check(fixture.options)
+	if err == nil || !strings.Contains(err.Error(), "Scoop manifest is present") {
+		t.Fatalf("unexpected error: %v", err)
 	}
 }
 
@@ -115,18 +127,6 @@ func newFixture(t *testing.T, version string) fixture {
 	}
 	writeFile(t, filepath.Join(indexes, "Casks", "talento.rb"), `version "`+version+`"
 url "https://github.com/talentohq/talento-cli/releases/download/v`+version+`/talento.tar.gz"`)
-	scoop := map[string]any{
-		"version": version,
-		"architecture": map[string]any{
-			"64bit": map[string]string{"url": "https://github.com/talentohq/talento-cli/releases/download/v" + version + "/talento.zip"},
-			"arm64": map[string]string{"url": "https://github.com/talentohq/talento-cli/releases/download/v" + version + "/talento-arm64.zip"},
-		},
-	}
-	scoopData, err := json.Marshal(scoop)
-	if err != nil {
-		t.Fatal(err)
-	}
-	writeFile(t, filepath.Join(indexes, "talento.json"), string(scoopData))
 	binary := filepath.Join(root, "talento")
 	writeFakeBinary(t, binary, version, "abc1234", "1720000000")
 	return fixture{options: Options{

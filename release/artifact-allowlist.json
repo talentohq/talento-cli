@@ -3,14 +3,12 @@
   "patterns": [
     "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_darwin_(?:amd64|arm64)\\.tar\\.gz$",
     "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_linux_(?:amd64|arm64)\\.tar\\.gz$",
-    "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_windows_(?:amd64|arm64)\\.zip$",
     "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_linux_(?:amd64|arm64)\\.(?:deb|rpm|apk)$",
-    "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_(?:darwin|linux|windows)_(?:amd64|arm64)\\.(?:tar\\.gz|zip)\\.spdx\\.json$",
+    "^talento_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?_(?:darwin|linux)_(?:amd64|arm64)\\.tar\\.gz\\.spdx\\.json$",
     "^talento-(?:skill|codex-plugin|claude-code-plugin|gemini-wrapper|copilot-wrapper|cursor-wrapper|windsurf-wrapper|opencode-wrapper)_[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?\\.zip$",
     "^checksums\\.txt$",
     "^checksums\\.txt\\.sig$",
     "^checksums\\.txt\\.sigstore\\.json$",
-    "^install\\.sh$",
-    "^install\\.ps1$"
+    "^install\\.sh$"
   ]
 }

@@ -107,9 +107,6 @@ run_gate() {
     APPLE_APP_PASSWORD=test \
     APPLE_TEAM_ID=test \
     APPLE_SIGNING_IDENTITY=test \
-    WINDOWS_CERTIFICATE_PFX=test \
-    WINDOWS_CERTIFICATE_PASSWORD=test \
-    TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER='CN=TalentoHQ Test' \
     sh ./scripts/check-stable-gates.sh
 }
 

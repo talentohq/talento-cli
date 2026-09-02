@@ -20,7 +20,7 @@ builds:
     binary: talento
     env:
       - CGO_ENABLED=0
-    goos: [darwin, linux, windows]
+    goos: [darwin, linux]
     goarch: [amd64, arm64]
     flags:
       - -trimpath
@@ -38,9 +38,6 @@ archives:
   - id: archives
     ids: [talento]
     formats: [tar.gz]
-    format_overrides:
-      - goos: windows
-        formats: [zip]
     name_template: talento_{{ .Version }}_{{ .Os }}_{{ .Arch }}
     files:
       - LICENSE
@@ -85,7 +82,6 @@ checksum:
   extra_files:
     - glob: release-extra/*.zip
     - glob: release-extra/installers/install.sh
-    - glob: release-extra/installers/install.ps1
 
 sboms:
   - id: archive-sboms
@@ -128,17 +124,6 @@ homebrew_casks:
     license: MIT
     binaries: [talento]
 
-scoops:
-  - name: talento
-    ids: [archives]
-    repository:
-      owner: talentohq
-      name: scoop-bucket
-      token: '{{ .Env.SCOOP_BUCKET_TOKEN }}'
-    homepage: https://talentohq.com
-    description: Native command-line client for TalentoHQ
-    license: MIT
-
 release:
   github:
     owner: talentohq
@@ -148,7 +133,6 @@ release:
   extra_files:
     - glob: release-extra/*.zip
     - glob: release-extra/installers/install.sh
-    - glob: release-extra/installers/install.ps1
 
 changelog:
   sort: asc

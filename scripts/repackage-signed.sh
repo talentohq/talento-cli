@@ -59,15 +59,3 @@ for arch in amd64 arm64; do
   tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner -czf "$new_archive" -C "$work" .
   replace_archive
 done
-
-for arch in amd64 arm64; do
-  prepare_archive "$dist/talento_${version}_windows_${arch}.zip"
-  binary="$signed/windows-${arch}/talento.exe"
-  unzip -q "$archive" -d "$work"
-  cp "$binary" "$work/talento.exe"
-  (
-    cd "$work"
-    find . -type f -print | LC_ALL=C sort | zip -X -q "$new_archive" -@
-  )
-  replace_archive
-done

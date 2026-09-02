@@ -46,8 +46,6 @@ var platforms = []struct {
 	{"darwin", "arm64", "tar.gz"},
 	{"linux", "amd64", "tar.gz"},
 	{"linux", "arm64", "tar.gz"},
-	{"windows", "amd64", "zip"},
-	{"windows", "arm64", "zip"},
 }
 
 func Check(options Options) error {
@@ -254,30 +252,10 @@ func checkPackageIndexes(indexes, version string) error {
 	if !strings.Contains(string(cask), expectedBase) {
 		return fmt.Errorf("Homebrew cask release URL does not use tag v%s", version)
 	}
-	scoopData, err := os.ReadFile(filepath.Join(indexes, "talento.json"))
-	if err != nil {
-		return fmt.Errorf("read Scoop manifest: %w", err)
-	}
-	var scoop struct {
-		Version      string `json:"version"`
-		Architecture map[string]struct {
-			URL string `json:"url"`
-		} `json:"architecture"`
-	}
-	if err := json.Unmarshal(scoopData, &scoop); err != nil {
-		return fmt.Errorf("parse Scoop manifest: %w", err)
-	}
-	if scoop.Version != version {
-		return fmt.Errorf("Scoop manifest version is %q, expected %q", scoop.Version, version)
-	}
-	for _, architecture := range []string{"64bit", "arm64"} {
-		entry, ok := scoop.Architecture[architecture]
-		if !ok {
-			return fmt.Errorf("Scoop manifest has no %s package", architecture)
-		}
-		if !strings.Contains(entry.URL, expectedBase) {
-			return fmt.Errorf("Scoop %s URL does not use tag v%s", architecture, version)
-		}
+	if _, err := os.Stat(filepath.Join(indexes, "talento.json")); err == nil {
+		return fmt.Errorf("Scoop manifest is present; Windows packages are not published")
+	} else if !os.IsNotExist(err) {
+		return fmt.Errorf("stat Scoop manifest: %w", err)
 	}
 	return nil
 }

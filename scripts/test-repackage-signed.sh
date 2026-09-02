@@ -21,21 +21,14 @@ create_fixture() {
   mkdir -p "$dist"
 
   for arch in amd64 arm64; do
-    mkdir -p "$signed/darwin-$arch" "$signed/windows-$arch"
+    mkdir -p "$signed/darwin-$arch"
     printf 'signed darwin %s\n' "$arch" > "$signed/darwin-$arch/talento"
-    printf 'signed windows %s\n' "$arch" > "$signed/windows-$arch/talento.exe"
-    chmod 0755 "$signed/darwin-$arch/talento" "$signed/windows-$arch/talento.exe"
+    chmod 0755 "$signed/darwin-$arch/talento"
 
     fixture="$root/fixture-$arch"
     mkdir -p "$fixture"
     printf 'unsigned darwin %s\n' "$arch" > "$fixture/talento"
     tar -czf "$dist/talento_${version}_darwin_${arch}.tar.gz" -C "$fixture" talento
-    rm -f "$fixture/talento"
-    printf 'unsigned windows %s\n' "$arch" > "$fixture/talento.exe"
-    (
-      cd "$fixture"
-      zip -X -q "$dist/talento_${version}_windows_${arch}.zip" talento.exe
-    )
     rm -rf -- "$fixture"
   done
 }
@@ -47,11 +40,9 @@ verify_fixture() {
 
   for arch in amd64 arm64; do
     unpack="$root/unpack-$arch"
-    mkdir -p "$unpack/darwin" "$unpack/windows"
+    mkdir -p "$unpack/darwin"
     tar -xzf "$dist/talento_${version}_darwin_${arch}.tar.gz" -C "$unpack/darwin"
-    unzip -q "$dist/talento_${version}_windows_${arch}.zip" -d "$unpack/windows"
     cmp "$signed/darwin-$arch/talento" "$unpack/darwin/talento"
-    cmp "$signed/windows-$arch/talento.exe" "$unpack/windows/talento.exe"
   done
 
   if find "$dist" -maxdepth 1 -name '.repackage.*' -print | grep -q .; then

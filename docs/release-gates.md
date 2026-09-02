@@ -12,12 +12,10 @@ environment is approved and every item below has current evidence attached to th
   entities, truncation, and server failures retain their correct states.
 - Employee, manager/HR, sales, finance, and external-user skill evaluations pass.
 - Packaged archives—not repository builds—pass install, auth, `doctor`, completion, credential,
-  adapter, and verified-upgrade smoke tests on macOS, Linux, and Windows.
-- Packaged `talento tui` passes a real-terminal smoke test on macOS, Linux, and Windows Terminal
-  (ConPTY): launch/sign-in, read, form review, exact preview, profile isolation, resize, and clean
-  exit. Unix PTY and cross-platform model tests do not replace packaged Windows terminal evidence.
-- macOS binaries are Developer ID signed and notarized; Windows binaries are Authenticode signed,
-  and their certificate subject exactly matches the protected `TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER` policy stamped into `install.ps1`.
+  adapter, and verified-upgrade smoke tests on macOS and Linux.
+- Packaged `talento tui` passes a real-terminal smoke test on macOS and Linux: launch/sign-in, read,
+  form review, exact preview, profile isolation, resize, and clean exit.
+- macOS binaries are Developer ID signed and notarized. Packaged Windows archives are not published.
 - Checksums, Ed25519 signature, Sigstore bundle, SBOMs, and GitHub attestations verify.
 - The artifact allowlist contains every published asset and no private repository content or secret.
 
@@ -46,6 +44,6 @@ secret without updating its protected SHA variable, or vice versa, fails closed.
 missing, duplicate, unexpected, or snapshot-inconsistent evidence blocks stable publication.
 
 Stable assets are assembled into a private workflow artifact after platform signing. Every packaged
-archive in that artifact must pass the Linux, macOS, and Windows smoke matrices before a separate job
-can create the public GitHub release. Homebrew and Scoop publication starts only after that GitHub
+archive in that artifact must pass the Linux and macOS smoke matrices before a separate job
+can create the public GitHub release. Homebrew publication starts only after that GitHub
 release job succeeds. Preview releases retain their prerelease-first workflow.

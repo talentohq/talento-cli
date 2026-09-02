@@ -12,21 +12,13 @@ committed.
 
 ## Install
 
-The CLI supports macOS, Linux, and Windows on amd64 and arm64.
+Packaged releases cover macOS and Linux on amd64 and arm64. Windows is not published until Authenticode signing is available; you can still build from source with Go.
 
 ### Homebrew (macOS, Linux)
 
 ```sh
 brew tap talentohq/tap
 brew install --cask talento
-talento version
-```
-
-### Scoop (Windows)
-
-```powershell
-scoop bucket add talentohq https://github.com/talentohq/scoop-bucket
-scoop install talento
 talento version
 ```
 
@@ -40,17 +32,6 @@ talento version
 ```
 
 The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.0`.
-
-### Verified script (Windows)
-
-Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then in PowerShell 5.1 or 7:
-
-```powershell
-irm https://github.com/talentohq/talento-cli/releases/latest/download/install.ps1 | iex
-talento version
-```
-
-Stable Windows installs also pin the Authenticode publisher. Use the **release asset** `install.ps1`, not the copy in this repository. Default destination is `%LOCALAPPDATA%\Talento\bin`.
 
 ### Nix
 

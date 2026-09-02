@@ -92,7 +92,7 @@ jobs:
         shell: bash
         run: |
           cp release-extra/*.zip dist/
-          cp release-extra/installers/install.sh release-extra/installers/install.ps1 dist/
+          cp release-extra/installers/install.sh dist/
           go run ./cmd/artifactcheck --dir dist --copy-to release-dist
       - name: Generate and verify release metadata
         shell: bash
@@ -151,9 +151,6 @@ jobs:
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_SIGNING_IDENTITY: ${{ vars.APPLE_SIGNING_IDENTITY }}
-          WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-          TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER: ${{ vars.TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER }}
 
   stable-base:
     needs: stable-preflight
@@ -180,11 +177,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TALENTO_RELEASE_PUBLIC_KEY: ${{ vars.TALENTO_RELEASE_PUBLIC_KEY }}
-          TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER: ${{ vars.TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER }}
       - shell: bash
         run: |
           cp release-extra/*.zip dist/
-          cp release-extra/installers/install.sh release-extra/installers/install.ps1 dist/
+          cp release-extra/installers/install.sh dist/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: stable-base
@@ -252,59 +248,8 @@ jobs:
           if-no-files-found: error
           retention-days: 3
 
-  sign-windows:
-    needs: stable-preflight
-    environment: stable-release-gates
-    strategy:
-      matrix:
-        include:
-          - arch: amd64
-            runner: windows-latest
-          - arch: arm64
-            runner: windows-11-arm
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 30
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-        with:
-          persist-credentials: false
-      - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
-        with:
-          go-version-file: go.mod
-          cache: false
-      - name: Build and Authenticode-sign
-        shell: pwsh
-        run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart("v")
-          $commit = (git rev-parse $env:GITHUB_SHA).Trim()
-          $date = (git show -s --format=%ct $env:GITHUB_SHA).Trim()
-          $env:GOOS = "windows"
-          $env:GOARCH = "${{ matrix.arch }}"
-          $env:CGO_ENABLED = "0"
-          go build -trimpath -ldflags "-s -w -X github.com/talentohq/talento-cli/internal/buildinfo.Version=$version -X github.com/talentohq/talento-cli/internal/buildinfo.Commit=$commit -X github.com/talentohq/talento-cli/internal/buildinfo.Date=$date -X github.com/talentohq/talento-cli/internal/buildinfo.Source=release -X github.com/talentohq/talento-cli/internal/buildinfo.MetadataFingerprint=talento-release-metadata:${version}:${commit}:${date}:release -X github.com/talentohq/talento-cli/internal/buildinfo.ReleasePublicKey=$env:TALENTO_RELEASE_PUBLIC_KEY" -o talento.exe ./cmd/talento
-          [IO.File]::WriteAllBytes("certificate.pfx", [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX))
-          $signTool = (Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin" -Recurse -Filter signtool.exe | Where-Object FullName -Match 'x64' | Sort-Object FullName | Select-Object -Last 1).FullName
-          & $signTool sign /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com /f certificate.pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD talento.exe
-          $signature = Get-AuthenticodeSignature talento.exe
-          if ($signature.Status -ne "Valid") { throw "Authenticode signature is not valid" }
-          if ($signature.SignerCertificate.Subject -cne $env:TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER) { throw "Authenticode publisher does not match the protected release policy" }
-          ./talento.exe --agent version
-        env:
-          TALENTO_RELEASE_PUBLIC_KEY: ${{ vars.TALENTO_RELEASE_PUBLIC_KEY }}
-          WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
-          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-          TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER: ${{ vars.TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER }}
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: windows-${{ matrix.arch }}
-          path: talento.exe
-          if-no-files-found: error
-          retention-days: 3
-
   stable-stage:
-    needs: [stable-base, sign-macos, sign-windows]
+    needs: [stable-base, sign-macos]
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: stable-release-gates
@@ -330,10 +275,6 @@ jobs:
         with:
           pattern: darwin-*
           path: signed
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          pattern: windows-*
-          path: signed
       - name: Repackage signed binaries and rebuild release metadata
         shell: bash
         run: |
@@ -342,7 +283,7 @@ jobs:
           signed="$(pwd)/signed"
           ./scripts/repackage-signed.sh "$dist" "$signed" "$version"
           find dist -maxdepth 1 -type f \( -name 'checksums.txt*' -o -name '*.spdx.json' \) -delete
-          for archive in dist/*.tar.gz dist/*.zip; do syft "$archive" -o "spdx-json=$archive.spdx.json"; done
+          for archive in dist/*.tar.gz; do syft "$archive" -o "spdx-json=$archive.spdx.json"; done
           go run ./cmd/releasechecksums --dir dist --output dist/checksums.txt
           go run ./cmd/signchecksums --input dist/checksums.txt --output dist/checksums.txt.sig
           cosign sign-blob --bundle=dist/checksums.txt.sigstore.json dist/checksums.txt --yes
@@ -433,64 +374,12 @@ jobs:
       - name: Exercise packaged TUI terminal startup and cleanup
         run: TALENTO_TUI_BINARY="$PWD/smoke/talento" go test -count=1 ./internal/tui -run '^TestTUIPackagedStartup$'
 
-  smoke-packaged-windows:
-    if: always() && (needs.preview.result == 'success' || needs.stable-stage.result == 'success')
-    needs: [preview, stable-stage]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runner: windows-latest
-            arch: amd64
-          - runner: windows-11-arm
-            arch: arm64
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
-    permissions:
-      contents: read
-    steps:
-      - name: Download staged stable release assets
-        if: needs.stable-stage.result == 'success'
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: stable-release
-          path: smoke
-      - name: Download published preview archive
-        if: needs.preview.result == 'success'
-        shell: pwsh
-        run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart("v")
-          $asset = "talento_${version}_windows_${{ matrix.arch }}.zip"
-          New-Item -ItemType Directory smoke -Force | Out-Null
-          gh release download $env:GITHUB_REF_NAME -R talentohq/talento-cli -p $asset -D smoke
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Exercise release archive
-        shell: pwsh
-        run: |
-          $version = $env:GITHUB_REF_NAME.TrimStart("v")
-          $asset = "talento_${version}_windows_${{ matrix.arch }}.zip"
-          New-Item -ItemType Directory home,config | Out-Null
-          Expand-Archive (Join-Path smoke $asset) smoke/package
-          @("talento.bash", "_talento", "talento.fish", "talento.ps1") | ForEach-Object {
-            if (-not (Test-Path (Join-Path smoke/package/completions $_))) { throw "missing completion $_" }
-          }
-          $env:TALENTO_HOME = (Resolve-Path home)
-          $env:TALENTO_CONFIG_DIR = (Resolve-Path config)
-          & smoke/package/talento.exe --agent version
-          & smoke/package/talento.exe completion powershell | Out-Null
-          & smoke/package/talento.exe tui --help | Out-Null
-          & smoke/package/talento.exe setup --agent codex --scope user --yes --json | Out-Null
-          & smoke/package/talento.exe doctor --json | Out-Null
-          & smoke/package/talento.exe upgrade --agent | Out-Null
-
   stable-publish:
     if: >-
       always() &&
       needs.stable-stage.result == 'success' &&
-      needs.smoke-packaged-unix.result == 'success' &&
-      needs.smoke-packaged-windows.result == 'success'
-    needs: [stable-stage, smoke-packaged-unix, smoke-packaged-windows]
+      needs.smoke-packaged-unix.result == 'success'
+    needs: [stable-stage, smoke-packaged-unix]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: stable-release-gates
@@ -537,33 +426,3 @@ jobs:
           git push
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-
-  publish-scoop:
-    if: always() && (needs.preview.result == 'success' || needs.stable-publish.result == 'success')
-    needs: [preview, stable-publish]
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions: {}
-    steps:
-      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: package-indexes
-          path: indexes
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-        with:
-          repository: talentohq/scoop-bucket
-          token: ${{ secrets.SCOOP_BUCKET_TOKEN }}
-          path: bucket
-          persist-credentials: false
-      - shell: bash
-        run: |
-          cp indexes/talento.json bucket/talento.json
-          cd bucket
-          git config user.name talentohq-release-bot
-          git config user.email releases@talentohq.com
-          git add talento.json
-          git diff --cached --quiet || git commit -m "talento $GITHUB_REF_NAME"
-          gh auth setup-git
-          git push
-        env:
-          GH_TOKEN: ${{ secrets.SCOOP_BUCKET_TOKEN }}

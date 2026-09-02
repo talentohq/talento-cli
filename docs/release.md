@@ -1,7 +1,8 @@
 # Release runbook (1.0.0)
 
 Operator checklist for a stable `v1.0.0` tag. Preview (`v0.x` / SemVer-prerelease) tags skip
-Apple/Windows signing and the staging-evidence gate; this document is for suffix-free `v1.x` only.
+Apple signing and the staging-evidence gate; this document is for suffix-free `v1.x` only.
+Packaged Windows archives are not published.
 
 See also [Release gates](release-gates.md), [Staging contracts](staging-contracts.md), and
 [Distribution and verification](distribution.md).
@@ -13,16 +14,11 @@ See also [Release gates](release-gates.md), [Staging contracts](staging-contract
 | Apple **Developer ID Application** certificate (`.p12`) + P12 password | macOS codesign |
 | Apple ID + **app-specific password** + 10-character Team ID | notarization via `notarytool` |
 | `APPLE_SIGNING_IDENTITY` string (exact `codesign -s` identity) | stamped into the stable environment |
-| Windows Authenticode PFX (OV/EV) + password | Windows codesign |
-| `TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER` (printable ASCII subject) | pinned into released `install.ps1` |
 | Ed25519 release keypair | `checksums.txt.sig` / embedded public key |
 | Four staging profiles + two synthetic tenants (`staging-company-a`, `staging-company-b-selected`) | evidence capture |
 | Signed git tags enabled (GPG or SSH) | `gh release create --verify-tag` |
-| Public repos `talentohq/homebrew-tap` and `talentohq/scoop-bucket` with an initial `main` commit | package-index publish |
+| Public repo `talentohq/homebrew-tap` with an initial `main` commit | Homebrew cask publish |
 | Org admin access to `talentohq` / `talentohq/talento-cli` | environments, secrets, branch protection |
-
-Users must install the **release-stamped** `install.ps1` from GitHub Releases. The repository copy
-still contains `__TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER__` and fails closed for stable versions.
 
 ## 2. One-time GitHub setup
 
@@ -151,27 +147,6 @@ xcrun notarytool submit /tmp/talento-notarize.zip --apple-id "$APPLE_ID" --passw
 
 Expected: `codesign --verify` succeeds and notarytool reports `Accepted`.
 
-### Windows Authenticode materials
-
-On Windows, after signing a dummy `talento.exe` once:
-
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("certificate.pfx")) | Set-Clipboard
-$sig = Get-AuthenticodeSignature .\talento.exe
-$sig.SignerCertificate.Subject
-```
-
-The subject string must match **byte-for-byte** (PowerShell `-cne`) what the workflow will stamp.
-Example shape: `CN=TalentoHQ SL, O=TalentoHQ SL, L=Madrid, C=ES`. No Unicode, no newlines.
-
-```bash
-gh secret set WINDOWS_CERTIFICATE_PFX --env stable-release-gates -R talentohq/talento-cli < certificate.pfx.b64
-printf '%s' "$WINDOWS_CERTIFICATE_PASSWORD" | gh secret set WINDOWS_CERTIFICATE_PASSWORD --env stable-release-gates -R talentohq/talento-cli
-gh variable set TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER --env stable-release-gates -R talentohq/talento-cli --body "$TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER"
-```
-
-The timestamp server is already `http://timestamp.digicert.com` in `release.yml`.
-
 ## 3. Key generation
 
 The public key is **embedded in every 1.0.0 binary**. Rotating it later cannot verify old checksums.
@@ -296,15 +271,13 @@ in `schemas/gateway.json` (the gate checks this).
 Also satisfy the remaining items in [release-gates.md](release-gates.md) that the workflow does not
 fully automate:
 
-- Packaged TUI on **Windows Terminal (ConPTY)**: launch/sign-in, read, form review, exact preview,
-  profile isolation, resize, and clean exit. Unix PTY tests are not a substitute.
-- Auth + credential-store smoke on packaged archives for macOS, Linux, and Windows.
+- Packaged TUI on macOS and Linux: launch/sign-in, read, form review, exact preview,
+  profile isolation, resize, and clean exit.
+- Auth + credential-store smoke on packaged archives for macOS and Linux.
 
 Record those as operator notes; they are not fields in the JSON schema, but 1.0.0 is blocked until
 they have been done on **packaged** binaries. A local `go build` is only a fallback if a packaged
-candidate is not yet available. Repeat the Windows Terminal procedure on the private `stable-stage`
-artifact before approving `stable-publish` (or immediately after publish). Treat a packaged Windows
-Terminal failure as a yank.
+candidate is not yet available.
 
 ### Encode and upload
 
@@ -314,7 +287,7 @@ sh scripts/prepare-staging-evidence.sh /path/to/report.json
 # follow the printed gh secret/variable commands
 ```
 
-The helper validates the report with `scripts/check-stable-gates.sh` (using dummy Apple/Windows/key
+The helper validates the report with `scripts/check-stable-gates.sh` (using dummy Apple/key
 values only when those env vars are unset), then prints the lowercase SHA-256, unwrapped base64, and
 a copy-pasteable upload. The encoder writes the unwrapped base64 to a mode-600 temp file under
 `$TMPDIR` (outside the repo) and prints:
@@ -364,7 +337,7 @@ git push origin v1.0.0
 ```
 
 Do **not** use `v1.0.0-rc.1` if the intent is a stable release. Any hyphenated prerelease suffix
-routes to the preview job and skips Apple/Windows signing.
+routes to the preview job and skips Apple signing.
 
 ### Approve `stable-release-gates` and watch
 
@@ -372,11 +345,11 @@ The first stable job (`stable-preflight`) waits for environment approval. Approv
 is on a 24-hour clock. Then watch:
 
 1. `stable-preflight` — `scripts/check-stable-gates.sh`
-2. `stable-base` + `sign-macos` (amd64/arm64) + `sign-windows` (amd64/arm64)
+2. `stable-base` + `sign-macos` (amd64/arm64)
 3. `stable-stage` — `repackage-signed.sh`, checksums, Ed25519, cosign, lockstep, attestations
-4. `smoke-packaged-unix` and `smoke-packaged-windows`
+4. `smoke-packaged-unix`
 5. `stable-publish` — `gh release create v1.0.0 … --verify-tag --generate-notes` (this is a **non-prerelease**)
-6. `publish-homebrew` and `publish-scoop`
+6. `publish-homebrew`
 
 If `stable-preflight` fails, do not retag. Fix secrets/evidence and re-run the workflow from the
 failed job, or delete the tag only if nothing was published:
@@ -392,9 +365,9 @@ Never delete the tag after `stable-publish` has created the GitHub release.
 
 ```bash
 gh release view v1.0.0 -R talentohq/talento-cli
-# expect: talento_1.0.0_{darwin,linux,windows}_{amd64,arm64} archives,
+# expect: talento_1.0.0_{darwin,linux}_{amd64,arm64} archives,
 # linux deb/rpm/apk, plugin zips, checksums.txt{,.sig,.sigstore.json},
-# SBOMs, install.sh, install.ps1
+# SBOMs, install.sh
 ```
 
 Allowlist is `release/artifact-allowlist.json`. Extra private files must not appear.
@@ -418,10 +391,6 @@ gh attestation verify talento_1.0.0_darwin_arm64.tar.gz -R talentohq/talento-cli
 brew tap talentohq/tap
 brew install --cask talento
 talento version   # 1.0.0, source=release
-
-# Scoop (Windows)
-scoop bucket add talentohq https://github.com/talentohq/scoop-bucket
-scoop install talento
 
 # Script
 TALENTO_VERSION=1.0.0 sh install.sh   # using the release asset, not a random curl of the default branch
@@ -466,7 +435,7 @@ Never commit any of the following to this repository (or to the tap/bucket repos
 - Staging evidence JSON reports (`report.json`), their base64 encodings, or the encoder's
   `$TMPDIR` upload file
 - Staging access tokens, refresh tokens, customer data, or production IDs
-- Fine-grained PATs used as `HOMEBREW_TAP_TOKEN` / `SCOOP_BUCKET_TOKEN`
+- Fine-grained PATs used as `HOMEBREW_TAP_TOKEN`
 
 Keep live evidence and signing materials in the password manager and in the protected
 `stable-release-gates` (and `preview-release` where applicable) GitHub environment only.

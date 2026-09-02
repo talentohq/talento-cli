@@ -1,14 +1,16 @@
 # Distribution and verification
 
-GoReleaser builds `talento` for darwin/linux/windows on amd64 and arm64. Archives include the binary,
+GoReleaser builds `talento` for darwin and linux on amd64 and arm64. Archives include the binary,
 license, README, canonical skill, native plugins, and pre-generated Bash, Zsh, Fish, and PowerShell
 completions. Linux deb, rpm, and apk packages install the corresponding shell completions in their
 standard system locations. The release also attaches every supported agent wrapper. Homebrew,
-Scoop, Nix, `go install`, shell, and PowerShell installation paths are supported.
+Nix, `go install`, and the verified shell installer are the published install paths. Packaged
+Windows archives, Scoop, and the PowerShell installer are withheld until Authenticode signing
+returns.
 
 ## Release metadata contract
 
-Git tags use `vVERSION`; binaries, archive names, plugin manifests, Nix, Homebrew, and Scoop use the
+Git tags use `vVERSION`; binaries, archive names, plugin manifests, Nix, and Homebrew use the
 same normalized SemVer without the leading `v`. The tag is the source of truth for each release
 workflow invocation. Before creating the tag, stamp and commit the Nix package version:
 
@@ -23,7 +25,7 @@ run never dirties the source manifests. GoReleaser uses only those staged plugin
 Before publication, `cmd/releaselockstep` opens every platform and standalone plugin archive and
 checks its embedded manifest. It also executes the host release binary and checks the normalized
 version, full commit, commit timestamp, and `release` source; checks the committed Nix stamp
-and complete Nix build flags; and verifies the generated Homebrew and Scoop versions and tag URLs.
+and complete Nix build flags; and verifies the generated Homebrew version and tag URLs.
 Any disagreement stops preview or stable publication before attestation.
 
 Every release has `checksums.txt`, an Ed25519 `checksums.txt.sig` consumed by `talento upgrade`, a
@@ -40,15 +42,11 @@ cosign verify-blob \
 gh attestation verify talento_<version>_<os>_<arch>.<archive> -R talentohq/talento-cli
 ```
 
-The direct shell and PowerShell installers require `cosign` and pin verification to the exact
-selected release tag and the GitHub Actions OIDC issuer. They never treat a checksum downloaded
-beside an archive as an independent trust root. Each installer validates archive layout, extracts
+The direct shell installer requires `cosign` and pins verification to the exact
+selected release tag and the GitHub Actions OIDC issuer. It never treats a checksum downloaded
+beside an archive as an independent trust root. The installer validates archive layout, extracts
 only the top-level executable, checks the candidate's exact version, and replaces an existing direct
-installation transactionally with rollback. Stable Windows installation adds an exact Authenticode
-certificate-subject check. The stable release environment must define
-`TALENTO_WINDOWS_AUTHENTICODE_PUBLISHER` to the subject reported by `Get-AuthenticodeSignature` for
-the protected signing certificate using printable ASCII; packaging stamps that value into the released `install.ps1`.
-The repository copy intentionally fails closed for stable versions until it has been release-stamped.
+installation transactionally with rollback.
 
 Package-manager installations are not overwritten by `talento upgrade`; the command returns the
 exact manager command. A binary installed with `go install` uses the available Go toolchain to
@@ -60,7 +58,7 @@ its version, then swap the executable with rollback.
 Release discovery is channel-aware. A running v0 or SemVer-prerelease binary considers only
 published GitHub prereleases, while a stable v1-or-newer binary considers only published,
 non-prerelease stable releases. Drafts and malformed tags are ignored, and candidates are ordered by
-SemVer rather than GitHub upload order. The shell and PowerShell installers default to `auto`, which
+SemVer rather than GitHub upload order. The shell installer defaults to `auto`, which
 installs the newest stable release when one exists and otherwise falls back to the newest preview.
 Set `TALENTO_CHANNEL=preview` or `TALENTO_CHANNEL=stable` to select a channel explicitly, or set
 `TALENTO_VERSION` to install an exact release without discovery.
