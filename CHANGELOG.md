@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3] - 2026-09-02
+
+### Fixed
+
+- `talento skill install`, `update`, and `remove` printed a blank `Talento setup:` line instead of
+  the managed files that were installed, updated, unchanged, or removed.
+
 ## [1.0.2] - 2026-09-02
 
 ### Added
