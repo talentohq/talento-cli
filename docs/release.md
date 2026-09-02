@@ -82,13 +82,16 @@ In the GitHub UI for `stable-release-gates`:
 `preview-release` does not need required reviewers for 1.0.0, but create it so a later `v0.x` tag does
 not fail on a missing environment.
 
-### Branch protection on `main`
+### Branch protection on the default branch
+
+The GitHub default branch is still `master` (the `main` rename was blocked). Protect that branch.
+If the default is later renamed to `main`, retarget this call.
 
 Do **not** require pull-request reviews on release day — that would block the version-stamp push.
 Minimum protection:
 
 ```bash
-gh api --method PUT repos/talentohq/talento-cli/branches/main/protection --input - <<'EOF'
+gh api --method PUT repos/talentohq/talento-cli/branches/master/protection --input - <<'EOF'
 {
   "required_status_checks": null,
   "enforce_admins": true,
@@ -291,8 +294,17 @@ a non-empty `subject`. Subjects for `resource.read` / `tool.read` / writes must 
 in `schemas/gateway.json` (the gate checks this).
 
 Also satisfy the remaining items in [release-gates.md](release-gates.md) that the workflow does not
-fully automate (packaged TUI on Windows Terminal / ConPTY; auth + credential-store smoke on packaged
-archives). Record those as operator notes.
+fully automate:
+
+- Packaged TUI on **Windows Terminal (ConPTY)**: launch/sign-in, read, form review, exact preview,
+  profile isolation, resize, and clean exit. Unix PTY tests are not a substitute.
+- Auth + credential-store smoke on packaged archives for macOS, Linux, and Windows.
+
+Record those as operator notes; they are not fields in the JSON schema, but 1.0.0 is blocked until
+they have been done on **packaged** binaries. A local `go build` is only a fallback if a packaged
+candidate is not yet available. Repeat the Windows Terminal procedure on the private `stable-stage`
+artifact before approving `stable-publish` (or immediately after publish). Treat a packaged Windows
+Terminal failure as a yank.
 
 ### Encode and upload
 
@@ -303,12 +315,17 @@ sh scripts/prepare-staging-evidence.sh /path/to/report.json
 ```
 
 The helper validates the report with `scripts/check-stable-gates.sh` (using dummy Apple/Windows/key
-values only when those env vars are unset), then prints the lowercase SHA-256, unwrapped base64, and:
+values only when those env vars are unset), then prints the lowercase SHA-256, unwrapped base64, and
+a copy-pasteable upload. The encoder writes the unwrapped base64 to a mode-600 temp file under
+`$TMPDIR` (outside the repo) and prints:
 
 ```text
-gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < report.b64
+gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < /absolute/tmp/path
 gh variable set TALENTO_STAGING_EVIDENCE_SHA --env stable-release-gates -R talentohq/talento-cli --body <digest>
 ```
+
+That upload file must stay outside the repository; do not copy it into the working tree. Delete it
+after `gh secret set` succeeds.
 
 If `check-stable-gates.sh` fails, fix the report; do not edit the gate. Updating one of the secret or
 SHA variable without the other fails closed. Re-run `prepare-staging-evidence.sh` after any edit of
@@ -326,14 +343,14 @@ git config tag.gpgSign true
 # or: git config gpg.format ssh
 ```
 
-### Stamp and commit on `main`
+### Stamp and commit on the default branch (`master` today)
 
 ```bash
 scripts/stamp-nix-version.sh 1.0.0
 scripts/stamp-nix-version.sh --check 1.0.0
 git add nix/version.nix README.md
 git commit -m "release: stamp 1.0.0"
-git push origin main
+git push origin master
 ```
 
 Wait for CI on that commit to go green. The README Install rewrite (stable install commands) lands in
@@ -407,7 +424,7 @@ scoop bucket add talentohq https://github.com/talentohq/scoop-bucket
 scoop install talento
 
 # Script
-TALENTO_VERSION=1.0.0 sh install.sh   # using the release asset, not a random curl of main
+TALENTO_VERSION=1.0.0 sh install.sh   # using the release asset, not a random curl of the default branch
 
 # Nix
 nix run github:talentohq/talento-cli/v1.0.0 -- version
@@ -427,13 +444,13 @@ supported platforms. Do not mention staging tenants or signing secrets.
 
 ### Stamp development version
 
-So `main` does not claim to be 1.0.0:
+So the default branch (`master` today) does not claim to be 1.0.0:
 
 ```bash
 scripts/stamp-nix-version.sh 1.0.1-dev
 git add nix/version.nix
 git commit -m "chore: stamp post-release 1.0.1-dev"
-git push origin main
+git push origin master
 ```
 
 Leave `internal/buildinfo.Version` at its development default unless you intentionally align it to
@@ -446,7 +463,8 @@ Never commit any of the following to this repository (or to the tap/bucket repos
 - Ed25519 private key material (`TALENTO_RELEASE_PRIVATE_KEY`)
 - Apple `.p12` / `certificate.p12.b64` / app-specific passwords
 - Windows `.pfx` / `certificate.pfx.b64` / PFX passwords
-- Staging evidence JSON reports (`report.json`) or their base64 encodings
+- Staging evidence JSON reports (`report.json`), their base64 encodings, or the encoder's
+  `$TMPDIR` upload file
 - Staging access tokens, refresh tokens, customer data, or production IDs
 - Fine-grained PATs used as `HOMEBREW_TAP_TOKEN` / `SCOOP_BUCKET_TOKEN`
 

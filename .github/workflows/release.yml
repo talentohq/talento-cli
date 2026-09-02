@@ -37,6 +37,7 @@ jobs:
       - run: go vet ./...
       - run: go run ./cmd/schemagen -check
       - run: sh scripts/test-check-stable-gates.sh
+      - run: sh scripts/test-prepare-staging-evidence.sh
       - run: sh scripts/test-repackage-signed.sh
 
   classify:
