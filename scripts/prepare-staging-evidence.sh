@@ -68,8 +68,13 @@ export TALENTO_STAGING_EVIDENCE_SHA=$evidence_sha
 
 evidence_b64=$(encode_base64 "$evidence_file")
 
+# Unwrapped base64 for `gh secret set`; keep it out of the working tree.
+upload_file=$(mktemp "${TMPDIR:-/tmp}/talento-staging-evidence.XXXXXX") || fail "cannot create staging-evidence upload file"
+chmod 600 "$upload_file"
+printf '%s' "$evidence_b64" >"$upload_file"
+
 printf 'sha256: %s\n' "$evidence_sha"
 printf 'base64: %s\n' "$evidence_b64"
 printf '%s\n' \
-  "gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < report.b64" \
+  "gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < $upload_file" \
   "gh variable set TALENTO_STAGING_EVIDENCE_SHA --env stable-release-gates -R talentohq/talento-cli --body $evidence_sha"

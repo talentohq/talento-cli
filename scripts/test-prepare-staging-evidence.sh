@@ -5,11 +5,48 @@ repo=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
 cd "$repo"
 
 tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+uploads=
+cleanup() {
+  rm -rf "$tmp"
+  [ -z "$uploads" ] || rm -f $uploads
+}
+trap cleanup EXIT HUP INT TERM
 
 fail() {
   echo "test-prepare-staging-evidence: $*" >&2
   exit 1
+}
+
+decode_base64_file() {
+  base64 -d <"$1" >"$2" 2>/dev/null || base64 -D <"$1" >"$2" 2>/dev/null
+}
+
+# Printed `gh secret set … < PATH` must redirect from an out-of-repo file whose
+# contents are evidence bytes or the unwrapped base64 of those bytes.
+assert_secret_upload() {
+  _out=$1
+  _evidence=$2
+  _secret_line=$(grep -F "gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli < " "$_out" || true)
+  [ -n "$_secret_line" ] || fail "stdout missing gh secret set command"
+  _upload_path=${_secret_line##*< }
+  _upload_path=$(printf '%s' "$_upload_path" | tr -d '\r')
+  case "$_upload_path" in
+    /*) ;;
+    *) fail "secret command does not redirect from an absolute path: $_upload_path" ;;
+  esac
+  [ -f "$_upload_path" ] || fail "upload file does not exist: $_upload_path"
+  case "$_upload_path" in
+    "$repo"/*) fail "upload file must stay outside the repo: $_upload_path" ;;
+  esac
+  uploads="$uploads $_upload_path"
+  if cmp -s "$_evidence" "$_upload_path"; then
+    return 0
+  fi
+  if decode_base64_file "$_upload_path" "$tmp/upload-decoded"; then
+    cmp -s "$_evidence" "$tmp/upload-decoded" || fail "upload file does not decode to evidence bytes"
+    return 0
+  fi
+  fail "upload file is neither evidence bytes nor decodable unwrapped base64"
 }
 
 sha256_file() {
@@ -116,8 +153,7 @@ printf '%s' "$printed_b64" | base64 -d >"$tmp/decoded" 2>/dev/null || \
   fail "printed base64 did not decode"
 cmp -s "$tmp/valid.json" "$tmp/decoded" || fail "decoded base64 does not match evidence bytes"
 
-grep -F "gh secret set TALENTO_STAGING_EVIDENCE_BASE64 --env stable-release-gates -R talentohq/talento-cli" "$tmp/out" >/dev/null \
-  || fail "stdout missing gh secret set command"
+assert_secret_upload "$tmp/out" "$tmp/valid.json"
 grep -F "gh variable set TALENTO_STAGING_EVIDENCE_SHA --env stable-release-gates -R talentohq/talento-cli --body $valid_sha" "$tmp/out" >/dev/null \
   || fail "stdout missing gh variable set command with digest"
 
@@ -149,5 +185,6 @@ printf '%s' "$rel_b64" | base64 -d >"$tmp/rel-decoded" 2>/dev/null || \
   printf '%s' "$rel_b64" | base64 -D >"$tmp/rel-decoded" 2>/dev/null || \
   fail "relative-path base64 did not decode"
 cmp -s "$tmp/valid.json" "$tmp/rel-decoded" || fail "relative-path decoded base64 does not match evidence bytes"
+assert_secret_upload "$tmp/rel.out" "$tmp/valid.json"
 
 echo "prepare-staging-evidence tests passed"
