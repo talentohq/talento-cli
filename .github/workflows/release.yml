@@ -324,6 +324,9 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
       - name: Download staged stable release assets
         if: needs.stable-stage.result == 'success'
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -355,7 +358,14 @@ jobs:
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento completion bash >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento setup --agent codex --scope user --yes --json >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento doctor --json >/dev/null
-          TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento upgrade --agent >/dev/null
+          # The GitHub release does not exist until after this job. Empty-channel
+          # upgrade is expected for the first tag in a channel; other failures are not.
+          if ! TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento --agent upgrade >upgrade.json; then
+            grep -Eq 'no compatible (stable|preview) release is available' upgrade.json || {
+              cat upgrade.json >&2
+              exit 1
+            }
+          fi
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: go.mod

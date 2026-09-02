@@ -6,6 +6,7 @@ the probe contracts under `contracts/` remain the reviewed shape for a later gat
 
 - macOS binaries are Developer ID signed and notarized. Packaged Windows archives are not published.
 - Packaged archives pass install, `doctor`, completion, and upgrade smoke tests on macOS and Linux.
+  The first tag in a channel may see `upgrade` report that no GitHub release exists yet.
 - Packaged `talento tui` passes a real-terminal startup smoke test on macOS and Linux.
 - Checksums, Ed25519 signature, Sigstore bundle, SBOMs, and GitHub attestations verify.
 - The artifact allowlist contains every published asset and no private repository content or secret.
