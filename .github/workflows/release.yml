@@ -358,14 +358,9 @@ jobs:
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento completion bash >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento setup --agent codex --scope user --yes --json >/dev/null
           TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento doctor --json >/dev/null
-          # The GitHub release does not exist until after this job. Empty-channel
-          # upgrade is expected for the first tag in a channel; other failures are not.
-          if ! TALENTO_HOME="$PWD/home" TALENTO_CONFIG_DIR="$PWD/config" smoke/talento --agent upgrade >upgrade.json; then
-            grep -Eq 'no compatible (stable|preview) release is available' upgrade.json || {
-              cat upgrade.json >&2
-              exit 1
-            }
-          fi
+          # Do not call `talento upgrade` here. It talks to GitHub Releases, which
+          # does not exist until after this job, and unauthenticated runner IPs
+          # hit the API rate limit. doctor already records the update check.
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6.5.0
         with:
           go-version-file: go.mod
