@@ -87,14 +87,18 @@ var domainExamples = map[string]string{
 	"reports": `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
 	"trainings": `  talento trainings list --name onboarding --json
   talento trainings get --training-id 42`,
+	"meetings": `  talento meetings list --for meetings --json
+  talento meetings create --name "First interview — company" --show-in-job-step --job-step-template-names-item "First interview"`,
 }
 
 var toolExamples = map[string]string{
 	"list_employees": `  talento people list --name Ana
   talento people list --team-id 12 --json`,
-	"list_absences":    `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30 --status approved`,
-	"create_changelog": `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
-	"list_trainings":   `  talento trainings list --name onboarding --json`,
+	"list_absences":           `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30 --status approved`,
+	"create_changelog":        `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
+	"list_trainings":          `  talento trainings list --name onboarding --json`,
+	"list_meeting_templates":  `  talento meetings list --for meetings --json`,
+	"create_meeting_template": `  talento meetings create --name "First interview — company" --show-in-job-step --job-step-template-names-item "First interview"`,
 }
 
 func writeToolExecution(talento *app.App, execution *app.ToolExecution) error {

@@ -1,7 +1,7 @@
 # Gateway coverage
 
 `schemas/gateway.json` is the reviewed versioned gateway snapshot. `coverage/manifest.json` records a
-stable domain/command decision for all 151 tools and a raw resource decision for all 17 resources in
+stable domain/command decision for all 159 tools and a raw resource decision for all 17 resources in
 snapshot version 1. The manifest includes the exact snapshot SHA-256 digest.
 
 `go run ./cmd/schemagen -check` fails if the digest, required inputs, duplicate command paths, tool

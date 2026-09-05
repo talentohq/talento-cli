@@ -21,7 +21,9 @@ admin-wide access; inspect the live catalogue and the applied scope.
   consequence and confirm only after the user agrees.
 - Training authoring has draft, review, requested-changes, published, and archived lifecycle states.
   Use the available lifecycle command and report the returned state; do not claim publication from a
-  review submission.
+  review submission. Returning a published course to draft is a lifecycle write, not a delete.
+- Meeting question templates are reusable 1:1 and hiring-interview prompts, not surveys. List them
+  before creating a duplicate set. Deleting a template fails while it still has questions.
 - Onboarding actions that require approval are not complete merely because an update request persisted.
 
 ## Useful management reads

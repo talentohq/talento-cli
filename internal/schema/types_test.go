@@ -28,7 +28,7 @@ func TestReviewedSnapshotCoverage(t *testing.T) {
 	if err := ValidateCoverage(snapshot, snapshotData, manifest); err != nil {
 		t.Fatal(err)
 	}
-	if got, want := len(snapshot.Tools), 151; got != want {
+	if got, want := len(snapshot.Tools), 159; got != want {
 		t.Fatalf("tools = %d, want %d", got, want)
 	}
 	if got, want := len(snapshot.Resources), 17; got != want {

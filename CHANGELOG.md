@@ -1,5 +1,17 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Meeting question templates as `talento meetings list|create|update|delete` (1:1s and hiring
+  interviews).
+- `talento trainings return-to-draft` for moving a published course back to draft.
+- `talento crm edit-crm-custom-field` and lead custom-field observation history
+  (`talento leads record-custom-field-observation`, `talento leads list-custom-field-observations`).
+- Additive CRM flags: `--position` and `--track-history` on custom-field create, plus `field_uuid`
+  on `custom_fields` JSON input.
+
 ## [1.0.3] - 2026-09-02
 
 ### Fixed

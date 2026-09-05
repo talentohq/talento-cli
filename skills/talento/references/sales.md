@@ -15,5 +15,9 @@ prospect), opportunity (deal), employee (Talento user), customer stage, and oppo
 Commercial actions attach according to the live schema. Do not force a customer name into a contact
 field or invent a relationship that Talento did not return.
 
+Lead custom-field observations are append-only history on a tracked field. Recording an observation
+does not edit the field definition; editing the definition is a separate CRM settings command. Prefer
+`field_uuid` from a previous listing when a field name is ambiguous.
+
 Useful analysis includes stalled opportunities, neglected accounts, overdue next actions, and pipeline
 coverage. Use returned expected/actual amounts and dates; identify incomplete or truncated reads.

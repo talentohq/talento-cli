@@ -56,7 +56,7 @@ var groupOrder = []string{"People & HR", "Work", "Sales", "Finance", "Content & 
 
 func domainGroup(domain string) string {
 	switch domain {
-	case "people", "time", "absences", "expenses", "schedules", "documents", "goals", "skills", "evaluations", "surveys", "trainings", "recruitment", "onboarding":
+	case "people", "time", "absences", "expenses", "schedules", "documents", "goals", "skills", "evaluations", "surveys", "trainings", "recruitment", "onboarding", "meetings":
 		return "People & HR"
 	case "appointments", "tasks", "todos":
 		return "Work"

@@ -26,7 +26,7 @@ const (
 var plannedDomains = []string{
 	"people", "time", "absences", "expenses", "schedules", "appointments",
 	"projects", "tasks", "todos", "documents", "goals", "skills", "evaluations",
-	"surveys", "trainings", "recruitment", "onboarding", "crm", "customers",
+	"surveys", "trainings", "recruitment", "onboarding", "meetings", "crm", "customers",
 	"contacts", "leads", "opportunities", "invoices", "purchases", "providers",
 	"items", "views", "reports",
 }
@@ -49,6 +49,7 @@ var domainDescriptions = map[string]string{
 	"trainings":     "Author and manage training content and lifecycle.",
 	"recruitment":   "Manage job offers and candidates.",
 	"onboarding":    "Work with onboarding records, templates, and actions.",
+	"meetings":      "Manage reusable question templates for 1:1s and hiring interviews.",
 	"crm":           "Work with CRM configuration, queues, and commercial actions.",
 	"customers":     "Find and maintain customer records.",
 	"contacts":      "Find and maintain customer contacts.",

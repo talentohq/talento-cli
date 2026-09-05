@@ -105,6 +105,12 @@ func TestToolOutcomeRecognizesTextOnlyTrainingWrites(t *testing.T) {
 			state: StateCommitted,
 		},
 		{
+			name:  "return to draft",
+			tool:  "return_training_to_draft",
+			text:  `{"message":"Formación devuelta a borrador","authoring_status":"draft"}`,
+			state: StateCommitted,
+		},
+		{
 			name:  "review submission",
 			tool:  "submit_training_for_review",
 			text:  `{"message":"Enviada para revisión","authoring_status":"in_review"}`,

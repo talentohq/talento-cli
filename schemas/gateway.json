@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-08-25T09:13:23Z",
+  "generated_at": "2026-09-05T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -3001,6 +3001,30 @@
       }
     },
     {
+      "name": "return_training_to_draft",
+      "description": "Move a published training course back to draft unless confirmed participants still have pending outcomes",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "training_id": {
+            "type": "integer",
+            "description": "The training course ID"
+          }
+        },
+        "required": [
+          "training_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
       "name": "archive_training",
       "description": "Archive a training course while preserving its history",
       "inputSchema": {
@@ -3920,6 +3944,232 @@
       }
     },
     {
+      "name": "list_meeting_templates",
+      "description": "List meeting question templates for 1:1s and hiring interviews.\nA template is a reusable set of questions. show_in_meeting makes it available in 1:1s.\nshow_in_job_step plus assigned hiring steps makes it available in candidate interviews.\nUse this before creating a new set, and to get IDs for update_meeting_template.\nThese are NOT survey questions — use list_surveys / create_survey for those.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Filter by template name (partial match)."
+          },
+          "for": {
+            "type": "string",
+            "enum": [
+              "meetings",
+              "job_steps"
+            ],
+            "description": "Limit to templates used in 1:1 meetings, or templates used in hiring steps. Omit to list all."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "Use 'concise' (default) for a one-line summary per template. Use 'detailed' for questions, assignment, and IDs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_meeting_template",
+      "description": "Create a meeting question template with optional questions and assignment.\nUse when the user wants interview questions, 1:1 questions, or a reusable question set\nfor meetings or hiring steps.\n\nThis creates a TEMPLATE, not a question asked in a specific meeting today.\nQuestions are free-text prompts (name + optional tags). They are not survey rating questions.\n\nshow_in_meeting=true makes the set available in 1:1s.\nshow_in_job_step=true plus job_step_template_names assigns it to hiring pipeline steps.\nResolve step names from list_meeting_templates (detailed) or the names the user gives.\nIf a name is ambiguous, ask the user to be more specific — do not guess.\n\nExamples:\n- \"create first-interview questions about the company\" → show_in_job_step=true, job_step_template_names=[\"First interview\"]\n- \"make a 1:1 feedback question set\" → show_in_meeting=true, show_in_job_step=false\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template name. Specific, e.g. 'First interview — company'."
+          },
+          "description": {
+            "type": "string",
+            "description": "What this set is for."
+          },
+          "show_in_meeting": {
+            "type": "boolean",
+            "description": "Available in 1:1 meetings. Default: true."
+          },
+          "show_in_job_step": {
+            "type": "boolean",
+            "description": "Available in hiring interviews. Default: true."
+          },
+          "job_step_template_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Hiring pipeline step names to assign (partial match). Required in practice when show_in_job_step is true."
+          },
+          "questions": {
+            "type": "array",
+            "description": "Questions to add. Each needs text. Tags are optional.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "description": "The question prompt."
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Optional tags, e.g. motivation, growth."
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_meeting_template",
+      "description": "Update a meeting question template: rename it, change 1:1 / hiring-step flags,\nreplace hiring-step assignment, and add, edit, or remove questions.\n\nResolve the template with template_id or template_name (partial match).\nQuestion names are matched inside that template. If several questions share a name,\nuse question_id from list_meeting_templates detailed output.\n\nRemoving a question that has already been asked in a meeting or interview will fail.\nReplacing job_step_template_names replaces the whole assignment set.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "template_id": {
+            "type": "integer",
+            "description": "Meeting template ID from a previous tool call."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "Template name (partial match)."
+          },
+          "name": {
+            "type": "string",
+            "description": "New template name."
+          },
+          "description": {
+            "type": "string",
+            "description": "New description."
+          },
+          "show_in_meeting": {
+            "type": "boolean",
+            "description": "Whether this set is available in 1:1s."
+          },
+          "show_in_job_step": {
+            "type": "boolean",
+            "description": "Whether this set is available in hiring interviews."
+          },
+          "job_step_template_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Replace assigned hiring steps with these names. Pass [] to clear."
+          },
+          "add_questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "update_questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "question_id": {
+                  "type": "integer"
+                },
+                "current_text": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "remove_questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Question names or IDs to remove."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_meeting_template",
+      "description": "Delete a meeting question template. It must have no questions left — remove questions\nwith update_meeting_template first. Resolve with template_id or template_name.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "template_id": {
+            "type": "integer",
+            "description": "Meeting template ID from a previous tool call."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "Template name (partial match)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
       "name": "list_candidates",
       "description": "List candidates. Search by name or filter by job offer.\nIn concise format: shows name, current step, and affinity score.\nIn detailed format: shows skills (with job requirement match), ratings, and activity timeline.\nExamples: 'candidates for Senior Developer' -> job_offer_name=Senior Developer.\n'tell me about Carlos' -> name=Carlos, response_format=detailed.\n'all candidates' -> no filters.\nWhen the user asks about a specific candidate, use name with detailed format.\n",
       "inputSchema": {
@@ -4524,7 +4774,8 @@
               "single_select",
               "multi_select",
               "number",
-              "currency"
+              "currency",
+              "datetime"
             ]
           },
           "required": {
@@ -4532,6 +4783,13 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "track_history": {
+            "type": "boolean",
+            "description": "Record append-only history. Supported only for Lead scalar fields."
           },
           "options": {
             "type": "array",
@@ -4546,6 +4804,69 @@
           "name",
           "field_type"
         ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_crm_custom_field",
+      "description": "Edit a CRM custom-field definition by UUID, internal ID, or exact name. Existing options can be updated or deactivated; definitions are not deleted.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "field_uuid": {
+            "type": "string"
+          },
+          "field_id": {
+            "type": "integer"
+          },
+          "field_name": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "position": {
+            "type": "integer"
+          },
+          "track_history": {
+            "type": "boolean"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Existing option UUID. Omit to add an option."
+                },
+                "label": {
+                  "type": "string"
+                },
+                "active": {
+                  "type": "boolean"
+                },
+                "position": {
+                  "type": "integer"
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
         "additionalProperties": false
       },
       "annotations": {
@@ -4643,10 +4964,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -4654,7 +4979,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -4775,10 +5100,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -4786,7 +5115,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -4999,10 +5328,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5010,7 +5343,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -5120,10 +5453,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5131,7 +5468,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -5263,10 +5600,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5274,7 +5615,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -5357,10 +5698,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5368,7 +5713,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -5403,6 +5748,105 @@
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
+      }
+    },
+    {
+      "name": "record_lead_custom_field_observation",
+      "description": "Immediately record a timestamped observation for a tracked Lead custom field. Older observations remain in history and do not replace a newer current value.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_id": {
+            "type": "integer"
+          },
+          "field_uuid": {
+            "type": "string"
+          },
+          "field_id": {
+            "type": "integer"
+          },
+          "field_name": {
+            "type": "string"
+          },
+          "value": {
+            "description": "Scalar value, {amount, currency_code} for currency, or null to clear."
+          },
+          "observed_at": {
+            "type": "string",
+            "description": "Optional ISO 8601 timestamp. Defaults to now."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "web",
+              "api",
+              "mcp",
+              "horarioweb"
+            ],
+            "description": "Defaults to mcp."
+          },
+          "idempotency_key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lead_id",
+          "value"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "list_lead_custom_field_observations",
+      "description": "List timestamped custom-field observations for one accessible Lead, newest first.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_id": {
+            "type": "integer"
+          },
+          "field_uuid": {
+            "type": "string"
+          },
+          "field_id": {
+            "type": "integer"
+          },
+          "field_name": {
+            "type": "string"
+          },
+          "observed_from": {
+            "type": "string",
+            "description": "ISO 8601 lower bound."
+          },
+          "observed_to": {
+            "type": "string",
+            "description": "ISO 8601 upper bound."
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "Defaults to 50."
+          }
+        },
+        "required": [
+          "lead_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
       }
     },
     {
@@ -5769,10 +6213,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5780,7 +6228,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -5896,10 +6344,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -5907,7 +6359,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -6058,10 +6510,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -6069,7 +6525,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -6190,10 +6646,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -6201,7 +6661,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -7212,10 +7672,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -7223,7 +7687,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",
@@ -7311,10 +7775,14 @@
           },
           "custom_fields": {
             "type": "array",
-            "description": "CRM custom field values. Use field_id or exact field_name. Scalar fields use value; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
+            "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
               "type": "object",
               "properties": {
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
+                },
                 "field_id": {
                   "type": "integer"
                 },
@@ -7322,7 +7790,7 @@
                   "type": "string"
                 },
                 "value": {
-                  "description": "Value for boolean, date, time, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
                 },
                 "currency_code": {
                   "type": "string",

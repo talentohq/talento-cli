@@ -389,6 +389,7 @@ var textOnlySuccessfulToolStates = map[string]ToolState{
 	"submit_training_for_review":  StateSubmitted,
 	"request_training_changes":    StateCommitted,
 	"publish_training":            StateCommitted,
+	"return_training_to_draft":    StateCommitted,
 	"archive_training":            StateCommitted,
 	"duplicate_training_as_draft": StateCommitted,
 }

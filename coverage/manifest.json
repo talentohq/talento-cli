@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "b5b4443fed6da65641903ed260858c2c39968dd1025305897d0b9dcdf4339c56",
+  "snapshot_sha256": "28b5521a9921ee81ab04904cd34bf286a82350f5cb8f872b6c952d62083d3a96",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -425,6 +425,12 @@
       "read_only": false
     },
     {
+      "tool": "return_training_to_draft",
+      "domain": "trainings",
+      "command": "return-to-draft",
+      "read_only": false
+    },
+    {
       "tool": "archive_training",
       "domain": "trainings",
       "command": "archive-training",
@@ -515,6 +521,30 @@
       "read_only": false
     },
     {
+      "tool": "list_meeting_templates",
+      "domain": "meetings",
+      "command": "list",
+      "read_only": true
+    },
+    {
+      "tool": "create_meeting_template",
+      "domain": "meetings",
+      "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "update_meeting_template",
+      "domain": "meetings",
+      "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_meeting_template",
+      "domain": "meetings",
+      "command": "delete",
+      "read_only": false
+    },
+    {
       "tool": "list_candidates",
       "domain": "recruitment",
       "command": "candidates",
@@ -599,6 +629,12 @@
       "read_only": false
     },
     {
+      "tool": "edit_crm_custom_field",
+      "domain": "crm",
+      "command": "edit-crm-custom-field",
+      "read_only": false
+    },
+    {
       "tool": "create_customer",
       "domain": "customers",
       "command": "create",
@@ -663,6 +699,18 @@
       "domain": "leads",
       "command": "update",
       "read_only": false
+    },
+    {
+      "tool": "record_lead_custom_field_observation",
+      "domain": "leads",
+      "command": "record-custom-field-observation",
+      "read_only": false
+    },
+    {
+      "tool": "list_lead_custom_field_observations",
+      "domain": "leads",
+      "command": "list-custom-field-observations",
+      "read_only": true
     },
     {
       "tool": "convert_lead",
