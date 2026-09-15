@@ -21,9 +21,13 @@ subset, and the live result decides the boundary.
 
 ## Tasks, todos, goals, and learning
 
-- Project tasks are company records; personal todos are private to the current user. Do not confuse
-  the two.
-- Use names and the returned context to update the intended task or goal; resolve ambiguity first.
+- Project tasks (`talento tasks …`) belong to a project. They are not goal checklists.
+- Goal actions (`talento goals list-actions|create-action|update-action|delete-action`) are
+  checklist items on a goal. Use them when the user wants to break a goal into simple todos.
+- Personal todos (`talento todos …`) are private to the current user. Managers never see them.
+- Do not call `talento tasks create-task` with a goal name; the gateway rejects that and
+  tells you to use `create_goal_action`.
+- Use names and the returned context to update the intended record; resolve ambiguity first.
 - Treat training visibility and authoring commands as server-authoritative. An employee may be able
   to discover or take training without being allowed to author it.
 

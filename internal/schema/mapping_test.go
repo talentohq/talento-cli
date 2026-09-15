@@ -18,6 +18,12 @@ func TestDomainForViewTools(t *testing.T) {
 	}
 }
 
+func TestDomainForCompanyClockIsTime(t *testing.T) {
+	if got, want := domainFor("get_current_datetime"), "time"; got != want {
+		t.Fatalf("domainFor(get_current_datetime) = %q, want %q", got, want)
+	}
+}
+
 func TestNewGatewayToolsMapToStableCommands(t *testing.T) {
 	tests := []struct {
 		tool, domain, command string
@@ -30,6 +36,11 @@ func TestNewGatewayToolsMapToStableCommands(t *testing.T) {
 		{"edit_crm_custom_field", "crm", "edit-crm-custom-field"},
 		{"record_lead_custom_field_observation", "leads", "record-custom-field-observation"},
 		{"list_lead_custom_field_observations", "leads", "list-custom-field-observations"},
+		{"get_current_datetime", "time", "now"},
+		{"list_goal_actions", "goals", "list-actions"},
+		{"create_goal_action", "goals", "create-action"},
+		{"update_goal_action", "goals", "update-action"},
+		{"delete_goal_action", "goals", "delete-action"},
 	}
 	for _, test := range tests {
 		t.Run(test.tool, func(t *testing.T) {

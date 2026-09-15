@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "28b5521a9921ee81ab04904cd34bf286a82350f5cb8f872b6c952d62083d3a96",
+  "snapshot_sha256": "57427ad2ebadc5b2f830f3912270e8e725c875b3d507ba7522b1d408386828fc",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -176,6 +176,30 @@
       "tool": "create_goal_status_update",
       "domain": "goals",
       "command": "status-update",
+      "read_only": false
+    },
+    {
+      "tool": "list_goal_actions",
+      "domain": "goals",
+      "command": "list-actions",
+      "read_only": true
+    },
+    {
+      "tool": "create_goal_action",
+      "domain": "goals",
+      "command": "create-action",
+      "read_only": false
+    },
+    {
+      "tool": "update_goal_action",
+      "domain": "goals",
+      "command": "update-action",
+      "read_only": false
+    },
+    {
+      "tool": "delete_goal_action",
+      "domain": "goals",
+      "command": "delete-action",
       "read_only": false
     },
     {
@@ -561,6 +585,12 @@
       "domain": "recruitment",
       "command": "candidate-rate",
       "read_only": false
+    },
+    {
+      "tool": "get_current_datetime",
+      "domain": "time",
+      "command": "now",
+      "read_only": true
     },
     {
       "tool": "get_employee",

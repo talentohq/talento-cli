@@ -33,7 +33,7 @@ var plannedDomains = []string{
 
 var domainDescriptions = map[string]string{
 	"people":        "Find employees and people-related reference data.",
-	"time":          "Work with attendance, clock-ins, and live activities.",
+	"time":          "Work with attendance, clock-ins, live activities, and the company clock.",
 	"absences":      "List, request, and update time off.",
 	"expenses":      "List and file employee expenses.",
 	"schedules":     "Inspect schedules, assignments, reschedules, and swaps.",
@@ -42,7 +42,7 @@ var domainDescriptions = map[string]string{
 	"tasks":         "List and update project tasks and checklists.",
 	"todos":         "Manage the current user's private personal todos.",
 	"documents":     "Create documents and inspect document categories.",
-	"goals":         "List goals, comments, and status updates.",
+	"goals":         "List goals, comments, status updates, and goal actions.",
 	"skills":        "Work with skills and competency frameworks.",
 	"evaluations":   "Create evaluations and inspect results.",
 	"surveys":       "Create surveys and inspect results.",

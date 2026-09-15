@@ -19,9 +19,14 @@ admin-wide access; inspect the live catalogue and the applied scope.
   result covers.
 - Recruitment steps can trigger candidate communication. If Talento previews a move, present that
   consequence and confirm only after the user agrees.
+- Goal actions are checklists on a goal, not project tasks. List them before adding a duplicate.
 - Training authoring has draft, review, requested-changes, published, and archived lifecycle states.
   Use the available lifecycle command and report the returned state; do not claim publication from a
   review submission. Returning a published course to draft is a lifecycle write, not a delete.
+- Training skill links accept a proficiency (`basic`, `intermediate`, `advanced`, `expert`) via
+  `--skills` JSON. `--skill-ids` still works but new links have no level; prefer `--skills`.
+- A course with `--external` is hosted on another platform and needs `--external-url`. Those
+  courses do not take in-app topics.
 - Meeting question templates are reusable 1:1 and hiring-interview prompts, not surveys. List them
   before creating a duplicate set. Deleting a template fails while it still has questions.
 - Onboarding actions that require approval are not complete merely because an update request persisted.

@@ -40,7 +40,9 @@ Preview IDs expire and belong to the profile that created them.
   explicit selector.
 - Trust the applied scope, totals, statuses, and truncation messages returned by Talento.
 - Do not recompute server totals or infer a company-wide result from a partial/truncated list.
-- Interpret relative dates against the user's current date and pass ISO dates.
+- Do not guess the date. For anything anchored to now ("today", "this week", "this month",
+  "yesterday", "so far this year"), run `talento time now --agent` and pass YYYY-MM-DD to
+  other commands. Use the timezone that tool returns, not the agent's clock.
 
 ## Analysis
 

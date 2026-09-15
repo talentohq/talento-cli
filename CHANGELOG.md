@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.5] - Unreleased
+
+### Added
+
+- `talento time now` maps `get_current_datetime` so agents use the company clock instead of guessing.
+- Goal checklist commands: `talento goals list-actions`, `create-action`, `update-action`, `delete-action`.
+- Training flags `--external`, `--external-url`, and `--skills` (optional proficiency per skill).
+
+### Changed
+
+- `talento tasks create-task` is project-only. Goal checklists use the new goals action commands.
+- Agent skill: resolve relative dates with `talento time now --agent`; distinguish project tasks,
+  goal actions, and personal todos.
+
+### Breaking
+
+- Removed unused `--response-format` from `talento time list-clock-ins`, `talento goals comments`,
+  and `talento schedules list` (the live MCP tools no longer accept it).
+
 ## [1.0.4] - 2026-09-05
 
 ### Added

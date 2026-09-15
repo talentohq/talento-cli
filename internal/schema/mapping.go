@@ -36,6 +36,8 @@ func domainFor(name string) string {
 	switch {
 	case name == "confirm_action":
 		return "action"
+	case name == "get_current_datetime":
+		return "time"
 	case hasToken(name, "view", "views") || name == "create_version" || name == "list_versions":
 		return "views"
 	case strings.Contains(name, "training") || strings.Contains(name, "topic") || strings.Contains(name, "lesson") || strings.Contains(name, "segment"):
@@ -110,6 +112,11 @@ func hasToken(name string, candidates ...string) bool {
 
 var commandOverrides = map[string]string{
 	"confirm_action":                       "confirm",
+	"get_current_datetime":                 "now",
+	"list_goal_actions":                    "list-actions",
+	"create_goal_action":                   "create-action",
+	"update_goal_action":                   "update-action",
+	"delete_goal_action":                   "delete-action",
 	"list_employees":                       "list",
 	"get_employee":                         "get",
 	"list_absence_categories":              "categories",
