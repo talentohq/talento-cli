@@ -10,21 +10,26 @@ import (
 )
 
 func TestCanonicalSkillAndGeneratedWrappersStayInSync(t *testing.T) {
-	canonical, err := fs.ReadFile(Content, "skills/talento/SKILL.md")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, copyPath := range []string{
-		"plugins/talento/skills/talento/SKILL.md",
-		"plugins/claude-code/skills/talento/SKILL.md",
+	canonicalRoot := "skills/talento"
+	canonicalFiles := skillFiles(t, canonicalRoot)
+	for _, copyRoot := range []string{
+		"plugins/talento/skills/talento",
+		"plugins/claude-code/skills/talento",
 	} {
-		copy, err := fs.ReadFile(Content, copyPath)
-		if err != nil {
-			t.Fatal(err)
+		copyFiles := skillFiles(t, copyRoot)
+		if len(copyFiles) != len(canonicalFiles) {
+			t.Fatalf("%s file set drifted from %s", copyRoot, canonicalRoot)
 		}
-		if !bytes.Equal(canonical, copy) {
-			t.Fatalf("%s drifted from canonical skill", copyPath)
+		for rel, canonical := range canonicalFiles {
+			copy, ok := copyFiles[rel]
+			if !ok || !bytes.Equal(canonical, copy) {
+				t.Fatalf("%s drifted from canonical skill", path.Join(copyRoot, rel))
+			}
 		}
+	}
+	canonical, ok := canonicalFiles["SKILL.md"]
+	if !ok {
+		t.Fatal("canonical skill is missing SKILL.md")
 	}
 	text := string(canonical)
 	if !strings.HasPrefix(text, "---\n") || !strings.Contains(text, "name: talento") {
@@ -47,4 +52,24 @@ func TestCanonicalSkillAndGeneratedWrappersStayInSync(t *testing.T) {
 			t.Fatalf("missing referenced skill file %s", reference)
 		}
 	}
+}
+
+func skillFiles(t *testing.T, root string) map[string][]byte {
+	t.Helper()
+	files := map[string][]byte{}
+	err := fs.WalkDir(Content, root, func(filePath string, entry fs.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		data, err := fs.ReadFile(Content, filePath)
+		if err != nil {
+			return err
+		}
+		files[strings.TrimPrefix(filePath, root+"/")] = data
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return files
 }

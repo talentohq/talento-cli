@@ -29,6 +29,8 @@ Then load only the relevant workflow reference:
   todos, goals, and training.
 - [references/manager-hr.md](references/manager-hr.md) — people, schedules, approvals, skills,
   evaluations, recruitment, onboarding, and training administration.
+- [references/surveys.md](references/surveys.md) — write a survey, choose who receives it, and turn it on.
+- [references/evaluations.md](references/evaluations.md) — write a performance evaluation from existing competencies or new ones, choose who is evaluated and who evaluates, and turn it on.
 - [references/sales.md](references/sales.md) — customers, contacts, leads, opportunities, and CRM.
 - [references/finance.md](references/finance.md) — invoices, providers, purchase documents, and items.
 - [references/external.md](references/external.md) — one-company-at-a-time external-user boundaries.

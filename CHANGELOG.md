@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.6] - Unreleased
+
+### Added
+
+- `talento surveys update`, plus audience, frequency, notification, and activation on
+  `talento surveys create` and `talento surveys update`.
+- `talento evaluations update`, plus audience, frequency, notification, activation, and who
+  evaluates on `talento evaluations create` and `talento evaluations update`.
+- Agent skill guidance for writing an NPS, poll, feedback, or climate survey, and a
+  performance evaluation from existing competencies or new ones.
+
+### Changed
+
+- A performance evaluation stays a draft until activation is requested. Questions are generated
+  once a round is active.
+
 ## [1.0.5] - 2026-09-16
 
 ### Added

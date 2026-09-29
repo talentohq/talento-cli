@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-09-15T21:43:58Z",
+  "generated_at": "2026-09-29T14:09:26Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -3372,18 +3372,85 @@
     },
     {
       "name": "create_survey",
-      "description": "Create a survey (poll, feedback, climate or NPS) with its sections and questions in one step. It is\ncreated right away as a DRAFT — inert (not active, not visible to anyone) and fully editable until\nsomeone activates it from the admin panel.\n\nIf the user is still designing it with you — helping write questions, weighing sections, undecided on\nthe structure — shape it together first. Otherwise, when the structure is sound (which a clear request\noften gives you outright), create the draft and present the result. Read the conversation, not just the\nwording.\n\nFor NPS surveys: only pass name and nps_question — the standard 0-10 scale is created automatically.\nFor poll/feedback/climate: pass sections with questions. Each question needs a text and type.\n\nQuestion types:\n- 'rating': a numeric scale (e.g., 1-5 stars). Set 'scale' (3-10, default 5). Options are created automatically.\n- 'selection': multiple choice. Pass 'options' as an array of strings.\n- 'yes_no': binary choice. Automatically creates Yes/No options.\n- 'text': open text response. No options needed.\n- 'date_time': date and/or time response. Set 'datetime_response_type' to only_date, only_time, or date_and_time.\n\nExamples:\n- \"create a survey about workplace safety\" → type=feedback, suggest 5-8 questions mixing rating and text\n- \"create an NPS survey for the onboarding program\" → type=nps, nps_question=\"How likely are you to recommend our onboarding program to a new colleague?\"\n- \"make a poll about the office party\" → type=poll, short with 2-3 selection questions\n\nThis tool does NOT activate the survey or configure visibilities.\nAfter creation, tell the user: the survey is now a draft, they can review/edit it, and they need to\nconfigure visibility (who receives it) and activate it from the admin panel when ready.\n",
+      "description": "Create a survey (poll, feedback, climate or NPS) with its questions in one step. Audience, frequency,\nnotification, and activation are optional arguments on this call — do not send the user to the admin\npanel for them. The same arguments are on update_survey for a survey that already exists.\n\nIt is created as a DRAFT unless activate is true. A draft collects nothing. With no audience, only the\nowner is a respondent. notify_respondents defaults to false, so activation does not email anyone until\nthat flag is true. Activation is the admin Activate button: the survey becomes active, or scheduled\nwhen the next round is still in the future.\n\nIf the user is still deciding the questions, write the questionnaire with them first. Create as soon\nas the questions are specified, and pass audience, frequency, notification, and activate only when\nthe user has already decided those. Do not invent an activation.\n\nFor NPS surveys: pass name and nps_question — the 0-10 scale is created automatically. Do not pass sections.\nFor poll/feedback/climate: pass sections with questions. Each question needs a text and type.\n\nQuestion types:\n- 'rating': a numeric scale (e.g., 1-5 stars). Set 'scale' (3-10, default 5). Options are created automatically.\n- 'selection': multiple choice. Pass 'options' as an array of strings.\n- 'yes_no': binary choice. Automatically creates Yes/No options.\n- 'text': open text response. No options needed.\n- 'date_time': date and/or time response. Set 'datetime_response_type' to only_date, only_time, or date_and_time.\n\nExamples:\n- \"create a survey about workplace safety\" → type=feedback, suggest 5-8 questions mixing rating and text\n- \"create an NPS survey for the onboarding program\" → type=nps, nps_question=\"How likely are you to recommend our onboarding program to a new colleague?\"\n- \"make a poll about the office party\" → type=poll, short with 2-3 selection questions\n\nA written climate or engagement questionnaire is type feedback. type climate is the company's pulse,\nwhich is the earliest climate survey. Change its schedule, audience, or activation with update_survey.\nCreating another climate survey does not replace that pulse, and opening a climate survey asks for\nthe pulse vote instead of sending the new questionnaire.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "activate": {
+            "description": "Start a draft survey, the same action as the admin Activate button. Turns it active, or scheduled when the next round is still in the future. Does not email anyone unless notify_respondents is true. Leave false until the user asks to start it.",
+            "type": "boolean"
+          },
           "anonymous": {
             "description": "Anonymous survey — responses cannot be attributed to individuals. Default: false. Use true when asking about sensitive topics (climate, complaints, honest feedback about management).",
             "type": "boolean"
           },
+          "audience_employees": {
+            "description": "Employee names who receive the survey. Partial names are matched. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_everyone": {
+            "description": "When true, the whole company receives the survey. Passing any audience argument replaces the previous audience.",
+            "type": "boolean"
+          },
+          "audience_offices": {
+            "description": "Office names whose people receive the survey. Partial names are matched. An unknown or ambiguous name is an error. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_teams": {
+            "description": "Team names whose people receive the survey. Partial names are matched. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "employees_view_answers": {
             "description": "Whether employees can see aggregated results after the survey closes. Default: false. Recommend true for transparency on climate/NPS surveys.",
             "type": "boolean"
+          },
+          "frequency_end_on": {
+            "description": "Last date a round may open, YYYY-MM-DD. Must be after frequency_start_on. Omit to leave the survey open-ended.",
+            "type": "string"
+          },
+          "frequency_period": {
+            "description": "How often a round opens. 'single' is one round. Recurrent periods: daily, weekly, biweekly, monthly, bimonthly, quarterly, semiannual, annual. Omit to leave the current schedule (new surveys default to a single round at 16:30).",
+            "enum": [
+              "single",
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly",
+              "bimonthly",
+              "quarterly",
+              "semiannual",
+              "annual"
+            ],
+            "type": "string"
+          },
+          "frequency_start_hour": {
+            "description": "Time of day a round opens, HH:MM, 24-hour. Example: '10:00'. Defaults to the survey's current hour (16:30 on a new survey).",
+            "type": "string"
+          },
+          "frequency_start_on": {
+            "description": "First date a round may open, YYYY-MM-DD. Omit to leave it unset; activation fills today when it is still blank.",
+            "type": "string"
+          },
+          "frequency_weekday": {
+            "description": "Weekday a recurrent round opens. Monday through Friday. The product has no weekend option. Defaults to the survey's current weekday (Monday on a new survey).",
+            "enum": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "type": "string"
           },
           "managers_view_answers": {
             "description": "Whether managers can see results. Default: false. Almost always should be true.",
@@ -3392,6 +3459,10 @@
           "name": {
             "description": "Survey name. Choose something clear and descriptive. Example: 'Workplace Safety Assessment Q1 2026'",
             "type": "string"
+          },
+          "notify_respondents": {
+            "description": "Email respondents when a round opens. Default false, including when the survey is activated. Set true only when the user wants that email.",
+            "type": "boolean"
           },
           "nps_comments": {
             "description": "ONLY for NPS surveys. Whether to add an optional comment field after the rating. Default: true. Recommended — comments explain the score.",
@@ -3474,7 +3545,7 @@
             "type": "array"
           },
           "type": {
-            "description": "Survey type. 'poll' = quick vote on a topic (1-3 questions). 'feedback' = structured feedback collection (5-10 questions). 'climate' = workplace climate assessment (typically 10-20 questions across multiple sections). 'nps' = Net Promoter Score (automatic 0-10 scale, just provide the question text). When the user says 'survey' without specifying, use 'feedback'.",
+            "description": "Survey type. 'poll' = a short vote (1-3 selection questions). 'feedback' = a written questionnaire, including a workplace climate or engagement survey. 'climate' = the company's existing pulse, not a new written questionnaire; update that survey instead of creating another. 'nps' = one 0-10 recommendation question. When the user says 'survey' without specifying, use 'feedback'.",
             "enum": [
               "poll",
               "feedback",
@@ -3498,47 +3569,344 @@
       }
     },
     {
-      "name": "create_evaluation",
-      "description": "Create a performance evaluation process. The evaluation is created in DRAFT status.\nUse this when the user wants to set up a 360° review, performance evaluation, or competency assessment.\n\nYou configure WHO evaluates (self, direct manager, team manager, office manager) — not the questions.\nQuestion are generated automatically from the company's competencies when the evaluation is activated.\n\nExamples:\n- \"create a performance evaluation\" → name=\"Performance Evaluation Q1 2026\", self_evaluation=true, direct_manager=true\n- \"set up 360 reviews\" → enable all evaluator types (self + direct_manager + team_manager + office_manager)\n- \"create a self-assessment\" → self_evaluation=true, all others false\n\nThis tool does NOT activate the evaluation, configure visibilities, or generate questions.\nAfter creation, tell the user: the evaluation is in draft. They need to configure visibilities\n(who gets evaluated) and activate it. Question will be generated from the company's competencies.\nIf no competencies are configured, suggest they set those up first.\n",
+      "name": "update_survey",
+      "description": "Set the audience, frequency, notification, or activation of a survey you manage. Resolve it by\nsurvey_name — never ask for an id. This is also how you change the company's existing climate\nsurvey: update that survey, do not create a second one.\n\nPassing any audience argument replaces the previous audience. audience_everyone includes the whole\ncompany and can be combined with office, team, or employee names. Omit every audience argument to\nleave the current audience. Pass empty lists without audience_everyone to clear it, which leaves\nonly the owner as a respondent.\n\nfrequency_period is single or a recurrent period. Weekday is Monday–Friday. Start hour is HH:MM.\nDates are YYYY-MM-DD.\n\nactivate starts a draft the same way as the admin Activate button. It does not email respondents\nunless notify_respondents is true. Do not activate unless the user asked to start the survey.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
+          "activate": {
+            "description": "Start a draft survey, the same action as the admin Activate button. Turns it active, or scheduled when the next round is still in the future. Does not email anyone unless notify_respondents is true. Leave false until the user asks to start it.",
+            "type": "boolean"
+          },
+          "audience_employees": {
+            "description": "Employee names who receive the survey. Partial names are matched. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_everyone": {
+            "description": "When true, the whole company receives the survey. Passing any audience argument replaces the previous audience.",
+            "type": "boolean"
+          },
+          "audience_offices": {
+            "description": "Office names whose people receive the survey. Partial names are matched. An unknown or ambiguous name is an error. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_teams": {
+            "description": "Team names whose people receive the survey. Partial names are matched. Passing any audience argument replaces the previous audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "frequency_end_on": {
+            "description": "Last date a round may open, YYYY-MM-DD. Must be after frequency_start_on. Omit to leave the survey open-ended.",
+            "type": "string"
+          },
+          "frequency_period": {
+            "description": "How often a round opens. 'single' is one round. Recurrent periods: daily, weekly, biweekly, monthly, bimonthly, quarterly, semiannual, annual. Omit to leave the current schedule (new surveys default to a single round at 16:30).",
+            "enum": [
+              "single",
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly",
+              "bimonthly",
+              "quarterly",
+              "semiannual",
+              "annual"
+            ],
+            "type": "string"
+          },
+          "frequency_start_hour": {
+            "description": "Time of day a round opens, HH:MM, 24-hour. Example: '10:00'. Defaults to the survey's current hour (16:30 on a new survey).",
+            "type": "string"
+          },
+          "frequency_start_on": {
+            "description": "First date a round may open, YYYY-MM-DD. Omit to leave it unset; activation fills today when it is still blank.",
+            "type": "string"
+          },
+          "frequency_weekday": {
+            "description": "Weekday a recurrent round opens. Monday through Friday. The product has no weekend option. Defaults to the survey's current weekday (Monday on a new survey).",
+            "enum": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "type": "string"
+          },
+          "notify_respondents": {
+            "description": "Email respondents when a round opens. Default false, including when the survey is activated. Set true only when the user wants that email.",
+            "type": "boolean"
+          },
+          "survey_name": {
+            "description": "Survey name (partial match). Ask the user when several surveys match. Performance evaluations are not surveys.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "survey_name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_evaluation",
+      "description": "Create a performance evaluation. It is a survey whose questions come from the company's competency\ntargets, not from questions you write. It is created as a DRAFT unless activate is true. A draft\ncollects nothing.\n\nWho evaluates: the person themselves, their direct manager, their team manager, their office\nmanager, or one named person who rates everyone. A team-member or peer review is not assigned\nwhen a round starts.\n\nWho is evaluated is the audience. With no audience, only the owner is evaluated. Passing any\naudience argument replaces who is evaluated. Frequency, notification, and activation are arguments\non this call. The same arguments are on update_evaluation for an evaluation that already exists.\n\nWhen a round is active, each person is asked the competency targets for their job category. A\ncompetency with a target for that job category is asked on every evaluation, not only this one.\nThis call does not write the questions. activate requires at least one evaluator and one active\ncompetency. Leave it false until the user asks to start. Starting sends no email by itself. When\na scheduled evaluation opens, Talento notifies the evaluators. Later rounds email only when\nnotify_respondents is true.\n\nIf the user is still deciding the competencies, agree which existing ones to use, or the name,\nscale, and job-category target of each new one, before creating. Create as soon as the evaluation\nis specified, and pass audience, frequency, notification, and activate only when already chosen.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "activate": {
+            "description": "Start a draft evaluation, the same action as the admin Activate button. Once it is active, questions are generated from the competency targets of each evaluated person's job category. Requires at least one evaluator and one active competency. Leave false until the user asks to start it.",
+            "type": "boolean"
+          },
           "anonymous": {
             "description": "Anonymous evaluation. Default: false. When true, evaluated employees can't see who gave which scores.",
             "type": "boolean"
           },
+          "audience_employees": {
+            "description": "Names of the people to evaluate. Partial names are matched. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_everyone": {
+            "description": "When true, everyone in the company is evaluated. Passing any audience argument replaces who is evaluated.",
+            "type": "boolean"
+          },
+          "audience_offices": {
+            "description": "Office names. People in those offices are evaluated. Partial names are matched. An unknown or ambiguous name is an error. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_teams": {
+            "description": "Team names. People on those teams are evaluated. Partial names are matched. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "direct_manager": {
-            "description": "Direct manager evaluates. Default: false. Most common evaluator type.",
+            "description": "Each person's direct manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
             "type": "boolean"
           },
           "employees_view_answers": {
             "description": "Employees can see their own evaluation results. Default: false. Recommended true for development-focused evaluations.",
             "type": "boolean"
           },
+          "frequency_end_on": {
+            "description": "Last date a round may open, YYYY-MM-DD. Must be after frequency_start_on. Omit to leave the evaluation open-ended.",
+            "type": "string"
+          },
+          "frequency_period": {
+            "description": "How often a round opens. 'single' is one round. Recurrent periods: daily, weekly, biweekly, monthly, bimonthly, quarterly, semiannual, annual. Omit to leave the current schedule (new evaluations default to a single round at 16:30).",
+            "enum": [
+              "single",
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly",
+              "bimonthly",
+              "quarterly",
+              "semiannual",
+              "annual"
+            ],
+            "type": "string"
+          },
+          "frequency_start_hour": {
+            "description": "Time of day a round opens, HH:MM, 24-hour. Example: '10:00'. Defaults to the evaluation's current hour (16:30 on a new evaluation).",
+            "type": "string"
+          },
+          "frequency_start_on": {
+            "description": "First date a round may open, YYYY-MM-DD. Omit to leave it unset; activation fills today when it is still blank.",
+            "type": "string"
+          },
+          "frequency_weekday": {
+            "description": "Weekday a recurrent round opens. Monday through Friday. The product has no weekend option. Defaults to the evaluation's current weekday (Monday on a new evaluation).",
+            "enum": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "type": "string"
+          },
           "managers_view_answers": {
             "description": "Managers can see results. Default: false. Almost always should be true.",
             "type": "boolean"
           },
           "name": {
-            "description": "Evaluation name. Example: 'Performance Evaluation H1 2026', '360° Review Q2'",
+            "description": "Evaluation name. Example: 'Performance Evaluation H1 2026', '360 Review Q2'",
             "type": "string"
           },
+          "notify_respondents": {
+            "description": "Stored on the evaluation. Starting it sends no email by itself. When a scheduled evaluation opens, Talento notifies the evaluators. Later rounds email only when this is true. Set it only when the user wants that email.",
+            "type": "boolean"
+          },
           "office_manager": {
-            "description": "Office manager evaluates. Default: false. Use for multi-office companies.",
+            "description": "Each person's office manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
             "type": "boolean"
           },
           "self_evaluation": {
-            "description": "Employees evaluate themselves. Default: false. Recommended for 360° reviews.",
+            "description": "The evaluated person also rates themselves. Omitted on create means false. Omitted on update leaves the current value.",
             "type": "boolean"
           },
+          "specific_person_name": {
+            "description": "One employee who rates every evaluated person. Partial name. On update, pass an empty string to clear that person. A team-member review is not assigned from this field.",
+            "type": "string"
+          },
           "team_manager": {
-            "description": "Team manager evaluates. Default: false. Use when team structure is important.",
+            "description": "Each person's team manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
             "type": "boolean"
           }
         },
         "required": [
           "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_evaluation",
+      "description": "Change who is evaluated, who evaluates, result visibility, frequency, notification, or activation\nof a performance evaluation you manage. Resolve it by evaluation_name — never ask for an id.\nSurveys that are not performance evaluations are updated with update_survey.\n\nPassing any audience argument replaces who is evaluated. Omit every audience argument to leave\nthe current audience. Pass empty lists without audience_everyone to clear it, which leaves only\nthe owner evaluated. Omit an evaluator flag to leave it. Pass specific_person_name as an empty\nstring to clear the named person.\n\nEvaluators and result visibility can change only before the evaluation is active. Frequency,\naudience, and notification can still change while it is active. A closed evaluation cannot be\nchanged. activate starts a draft and requires at least one evaluator and one active competency.\nIt sends no email by itself. Do not activate unless the user asked to start the evaluation.\nA team-member or peer review is not assigned when a round starts.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "activate": {
+            "description": "Start a draft evaluation, the same action as the admin Activate button. Once it is active, questions are generated from the competency targets of each evaluated person's job category. Requires at least one evaluator and one active competency. Leave false until the user asks to start it.",
+            "type": "boolean"
+          },
+          "anonymous": {
+            "description": "Anonymous evaluation. When true, evaluated people cannot see who gave which scores. Omit to leave the current value.",
+            "type": "boolean"
+          },
+          "audience_employees": {
+            "description": "Names of the people to evaluate. Partial names are matched. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_everyone": {
+            "description": "When true, everyone in the company is evaluated. Passing any audience argument replaces who is evaluated.",
+            "type": "boolean"
+          },
+          "audience_offices": {
+            "description": "Office names. People in those offices are evaluated. Partial names are matched. An unknown or ambiguous name is an error. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "audience_teams": {
+            "description": "Team names. People on those teams are evaluated. Partial names are matched. Passing any audience argument replaces who is evaluated.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "direct_manager": {
+            "description": "Each person's direct manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
+            "type": "boolean"
+          },
+          "employees_view_answers": {
+            "description": "Evaluated people can see their own results. Omit to leave the current value.",
+            "type": "boolean"
+          },
+          "evaluation_name": {
+            "description": "Performance evaluation name (partial match). Ask the user when several evaluations match.",
+            "type": "string"
+          },
+          "frequency_end_on": {
+            "description": "Last date a round may open, YYYY-MM-DD. Must be after frequency_start_on. Omit to leave the evaluation open-ended.",
+            "type": "string"
+          },
+          "frequency_period": {
+            "description": "How often a round opens. 'single' is one round. Recurrent periods: daily, weekly, biweekly, monthly, bimonthly, quarterly, semiannual, annual. Omit to leave the current schedule (new evaluations default to a single round at 16:30).",
+            "enum": [
+              "single",
+              "daily",
+              "weekly",
+              "biweekly",
+              "monthly",
+              "bimonthly",
+              "quarterly",
+              "semiannual",
+              "annual"
+            ],
+            "type": "string"
+          },
+          "frequency_start_hour": {
+            "description": "Time of day a round opens, HH:MM, 24-hour. Example: '10:00'. Defaults to the evaluation's current hour (16:30 on a new evaluation).",
+            "type": "string"
+          },
+          "frequency_start_on": {
+            "description": "First date a round may open, YYYY-MM-DD. Omit to leave it unset; activation fills today when it is still blank.",
+            "type": "string"
+          },
+          "frequency_weekday": {
+            "description": "Weekday a recurrent round opens. Monday through Friday. The product has no weekend option. Defaults to the evaluation's current weekday (Monday on a new evaluation).",
+            "enum": [
+              "monday",
+              "tuesday",
+              "wednesday",
+              "thursday",
+              "friday"
+            ],
+            "type": "string"
+          },
+          "managers_view_answers": {
+            "description": "Managers can see results. Omit to leave the current value.",
+            "type": "boolean"
+          },
+          "notify_respondents": {
+            "description": "Stored on the evaluation. Starting it sends no email by itself. When a scheduled evaluation opens, Talento notifies the evaluators. Later rounds email only when this is true. Set it only when the user wants that email.",
+            "type": "boolean"
+          },
+          "office_manager": {
+            "description": "Each person's office manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
+            "type": "boolean"
+          },
+          "self_evaluation": {
+            "description": "The evaluated person also rates themselves. Omitted on create means false. Omitted on update leaves the current value.",
+            "type": "boolean"
+          },
+          "specific_person_name": {
+            "description": "One employee who rates every evaluated person. Partial name. On update, pass an empty string to clear that person. A team-member review is not assigned from this field.",
+            "type": "string"
+          },
+          "team_manager": {
+            "description": "Each person's team manager rates them. Omitted on create means false. Omitted on update leaves the current value.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "evaluation_name"
         ],
         "type": "object"
       },

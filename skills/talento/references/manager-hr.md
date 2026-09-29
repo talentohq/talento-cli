@@ -15,6 +15,8 @@ admin-wide access; inspect the live catalogue and the applied scope.
 
 - For skills and competency work, inspect the existing framework and job categories before changing
   targets or scales.
+- Writing a survey, choosing who receives it, and turning it on are in [surveys.md](surveys.md).
+- Writing a performance evaluation, choosing who is evaluated and who evaluates, and turning it on are in [evaluations.md](evaluations.md).
 - Evaluation and survey results may be incomplete when responses are missing. Say what population the
   result covers.
 - Recruitment steps can trigger candidate communication. If Talento previews a move, present that

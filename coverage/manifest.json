@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "57427ad2ebadc5b2f830f3912270e8e725c875b3d507ba7522b1d408386828fc",
+  "snapshot_sha256": "1365ca7b10ae44a6357095774b731ec908be7d7e74916d8ada54ea9fe172e462",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -485,9 +485,21 @@
       "read_only": false
     },
     {
+      "tool": "update_survey",
+      "domain": "surveys",
+      "command": "update",
+      "read_only": false
+    },
+    {
       "tool": "create_evaluation",
       "domain": "evaluations",
       "command": "create",
+      "read_only": false
+    },
+    {
+      "tool": "update_evaluation",
+      "domain": "evaluations",
+      "command": "update",
       "read_only": false
     },
     {
