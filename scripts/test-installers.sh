@@ -181,7 +181,10 @@ grep -F 'regular file' "$errors" >/dev/null || fail "link-archive error is not a
 rm -rf "$work/package"
 mkdir -p "$work/package/dir"
 write_candidate "$work/package/talento"
-tar -czf "$fixture/talento_0.1.0_linux_amd64.tar.gz" -C "$work/package" dir/../talento
+# -P keeps the stored member name. Current GNU tar otherwise rewrites
+# dir/../talento to talento while creating the archive, so the fixture
+# would no longer exercise the installer's traversal rejection.
+tar -P -czf "$fixture/talento_0.1.0_linux_amd64.tar.gz" -C "$work/package" dir/../talento
 checksum=$(sha256_file "$fixture/talento_0.1.0_linux_amd64.tar.gz")
 printf '%s  %s\n' "$checksum" talento_0.1.0_linux_amd64.tar.gz > "$fixture/checksums.txt"
 if run_installer /bin/sh "$stubs"; then fail "traversal archive unexpectedly installed"; fi
