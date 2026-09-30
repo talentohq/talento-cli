@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-09-29T14:09:26Z",
+  "generated_at": "2026-09-30T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -4856,6 +4856,173 @@
         "required": [
           "rating"
         ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_candidate",
+      "description": "Add a candidate by hand to a job offer. A candidate is an applicant, not an employee.\nResolve the job offer by name. The candidate is placed on step_name, or on the offer's first\npipeline step when no step is given.\nName and email are required. Phone and cover letter are optional. This does not upload a CV.\nSteps that email the candidate return a preview to confirm first; the rest add them right away.\nRead the result to know which happened: a preview means nothing has been saved yet.\nPeople who can see the offer are notified in Talento when the candidate is actually added.\nExamples: 'add Ana López to the backend offer' -> name, email, job_offer_name=backend.\n'add Ana to the interview step of the marketing offer' -> step_name=Interview, job_offer_name=marketing.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "cover_letter": {
+            "description": "Cover letter or notes about the candidate. Optional.",
+            "type": "string"
+          },
+          "email": {
+            "description": "Candidate email. Required. This is where a notifying step sends mail.",
+            "type": "string"
+          },
+          "job_offer_id": {
+            "description": "Job offer ID from a previous list_job_offers call.",
+            "type": "integer"
+          },
+          "job_offer_name": {
+            "description": "Job offer title (partial match). The offer you can manage.",
+            "type": "string"
+          },
+          "name": {
+            "description": "Candidate name. Required.",
+            "type": "string"
+          },
+          "phone": {
+            "description": "Phone number. Optional.",
+            "type": "string"
+          },
+          "step_id": {
+            "description": "Pipeline step ID. Omit to use the offer's first step.",
+            "type": "integer"
+          },
+          "step_name": {
+            "description": "Pipeline step name (partial match). Omit to use the offer's first step.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "email"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "add_candidate_skill",
+      "description": "Add a skill from the company catalog to a candidate. Resolve the candidate and the skill by name.\nThis records a skill the candidate has. It does not change the skills the job offer requires.\nobtained_on defaults to today. A candidate can have each catalog skill once; if they already have\nit, use update_candidate_skill. Unknown catalog names are rejected — call list_skills first.\nAdding a skill asks Talento to recalculate the candidate's affinity. The new score is not in this result.\nExamples: 'Ana knows Ruby since 2019' -> candidate_name=Ana, skill_name=Ruby, obtained_on=2019-01-01.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "description": "Candidate ID from a previous list_candidates call.",
+            "type": "integer"
+          },
+          "candidate_name": {
+            "description": "Candidate name (partial match).",
+            "type": "string"
+          },
+          "details": {
+            "description": "Optional notes about this skill for the candidate.",
+            "type": "string"
+          },
+          "obtained_on": {
+            "description": "Date the skill was obtained (YYYY-MM-DD). Default: today.",
+            "type": "string"
+          },
+          "skill_name": {
+            "description": "Skill name (partial match against the company catalog). Required.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill_name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_candidate_skill",
+      "description": "Update a skill already recorded on a candidate. Changes the obtained date and/or the notes.\nIt does not replace the skill with a different catalog skill — remove the old one and add the new one.\nResolve the candidate by name. Resolve the skill entry by skill_name, or by candidate_skill_id from\nlist_candidates detailed output when the candidate has more than one entry for that name.\nOnly the fields you pass change.\nExamples: 'Ana's Ruby skill started in 2018' -> candidate_name=Ana, skill_name=Ruby, obtained_on=2018-06-01.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "description": "Candidate ID from a previous list_candidates call.",
+            "type": "integer"
+          },
+          "candidate_name": {
+            "description": "Candidate name (partial match).",
+            "type": "string"
+          },
+          "candidate_skill_id": {
+            "description": "Skill entry ID from list_candidates detailed output.",
+            "type": "integer"
+          },
+          "details": {
+            "description": "New notes. Pass an empty string to clear them.",
+            "type": "string"
+          },
+          "obtained_on": {
+            "description": "New obtained date (YYYY-MM-DD).",
+            "type": "string"
+          },
+          "skill_name": {
+            "description": "Skill name (partial match against skills already on this candidate).",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "remove_candidate_skill",
+      "description": "Remove a skill from a candidate. This deletes that skill entry. It does not delete the catalog skill\nor the candidate. Resolve the candidate by name and the entry by skill_name, or by candidate_skill_id\nfrom list_candidates detailed output when several entries share a name.\nTalento recalculates affinity after the skill is removed. The new score is not in this result.\nExamples: 'remove Ruby from Ana' -> candidate_name=Ana, skill_name=Ruby.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "candidate_id": {
+            "description": "Candidate ID from a previous list_candidates call.",
+            "type": "integer"
+          },
+          "candidate_name": {
+            "description": "Candidate name (partial match).",
+            "type": "string"
+          },
+          "candidate_skill_id": {
+            "description": "Skill entry ID from list_candidates detailed output.",
+            "type": "integer"
+          },
+          "skill_name": {
+            "description": "Skill name (partial match against skills already on this candidate).",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "annotations": {

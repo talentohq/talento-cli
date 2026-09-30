@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "1365ca7b10ae44a6357095774b731ec908be7d7e74916d8ada54ea9fe172e462",
+  "snapshot_sha256": "bf09bc008b6ceef1aa7aee1e5ed612f3abba1fbc3b3048d13bc2683e79504586",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -596,6 +596,30 @@
       "tool": "rate_candidate",
       "domain": "recruitment",
       "command": "candidate-rate",
+      "read_only": false
+    },
+    {
+      "tool": "create_candidate",
+      "domain": "recruitment",
+      "command": "candidate-create",
+      "read_only": false
+    },
+    {
+      "tool": "add_candidate_skill",
+      "domain": "recruitment",
+      "command": "candidate-skill-add",
+      "read_only": false
+    },
+    {
+      "tool": "update_candidate_skill",
+      "domain": "recruitment",
+      "command": "candidate-skill-update",
+      "read_only": false
+    },
+    {
+      "tool": "remove_candidate_skill",
+      "domain": "recruitment",
+      "command": "candidate-skill-remove",
       "read_only": false
     },
     {

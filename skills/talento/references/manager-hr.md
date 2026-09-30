@@ -19,8 +19,12 @@ admin-wide access; inspect the live catalogue and the applied scope.
 - Writing a performance evaluation, choosing who is evaluated and who evaluates, and turning it on are in [evaluations.md](evaluations.md).
 - Evaluation and survey results may be incomplete when responses are missing. Say what population the
   result covers.
-- Recruitment steps can trigger candidate communication. If Talento previews a move, present that
-  consequence and confirm only after the user agrees.
+- Recruitment steps can trigger candidate communication. If Talento previews a move or a new
+  candidate placed on a notifying step, present that consequence and confirm only after the user agrees.
+- Adding a candidate by hand places them on a pipeline step of a job offer. Name and email are
+  required. The first step is used when no step is named.
+- Candidate skills are catalog skills recorded on that person, with an obtained date and optional
+  notes. Add, update, and remove them by skill name. A detailed candidate listing shows each entry.
 - Goal actions are checklists on a goal, not project tasks. List them before adding a duplicate.
 - Training authoring has draft, review, requested-changes, published, and archived lifecycle states.
   Use the available lifecycle command and report the returned state; do not claim publication from a

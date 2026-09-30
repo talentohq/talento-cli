@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.7] - Unreleased
+
+### Added
+
+- `talento recruitment candidate-create` adds a candidate by hand to a job offer.
+  Name and email are required. A step that emails the candidate returns a preview first.
+- `talento recruitment candidate-skill-add`, `candidate-skill-update`, and
+  `candidate-skill-remove` record a catalog skill on a candidate, including the
+  obtained date and notes.
+- Detailed `talento recruitment candidates` includes each skill's obtained date,
+  notes, and system id.
+
+### Changed
+
+- Agent skill guidance covers adding a candidate and maintaining their skills.
+
 ## [1.0.6] - 2026-09-29
 
 ### Added

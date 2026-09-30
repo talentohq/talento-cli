@@ -41,6 +41,10 @@ func TestNewGatewayToolsMapToStableCommands(t *testing.T) {
 		{"create_goal_action", "goals", "create-action"},
 		{"update_goal_action", "goals", "update-action"},
 		{"delete_goal_action", "goals", "delete-action"},
+		{"create_candidate", "recruitment", "candidate-create"},
+		{"add_candidate_skill", "recruitment", "candidate-skill-add"},
+		{"update_candidate_skill", "recruitment", "candidate-skill-update"},
+		{"remove_candidate_skill", "recruitment", "candidate-skill-remove"},
 	}
 	for _, test := range tests {
 		t.Run(test.tool, func(t *testing.T) {
