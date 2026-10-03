@@ -38,14 +38,14 @@ curl -fsSL https://github.com/talentohq/talento-cli/releases/latest/download/ins
 talento version
 ```
 
-The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.7`.
+The installer verifies the checksum manifest with Sigstore (OIDC identity `https://github.com/talentohq/talento-cli/.github/workflows/release.yml@refs/tags/v<version>`) before replacing the binary. Default destination is `/usr/local/bin`; override with `TALENTO_INSTALL_DIR`. Pin a version with `TALENTO_VERSION=1.0.8`.
 
 ### Nix
 
 ```sh
-nix profile install github:talentohq/talento-cli/v1.0.7
+nix profile install github:talentohq/talento-cli/v1.0.8
 # or one-shot
-nix run github:talentohq/talento-cli/v1.0.7 -- version
+nix run github:talentohq/talento-cli/v1.0.8 -- version
 ```
 
 ### Go
@@ -53,7 +53,7 @@ nix run github:talentohq/talento-cli/v1.0.7 -- version
 You need [Go](https://go.dev/doc/install) 1.26.7 or newer.
 
 ```sh
-go install github.com/talentohq/talento-cli/cmd/talento@v1.0.7
+go install github.com/talentohq/talento-cli/cmd/talento@v1.0.8
 talento version
 ```
 
