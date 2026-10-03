@@ -32,10 +32,14 @@ Changing a TUI dependency requires regenerating and reviewing `vendor` as well a
 Run `go run ./cmd/surfacegen -diff`, append the next snapshot with `-next`, and verify with `-check`
 when adding a public command or flag; never rewrite an existing surface snapshot.
 
-Release tags are `vVERSION`, while every packaged metadata surface uses `VERSION`. Run
-`scripts/stamp-nix-version.sh VERSION` and commit `nix/version.nix` before creating either a preview
-or stable tag. The release workflow verifies the tag, Nix stamp, binary provenance, embedded Codex
-and Claude Code manifests, and generated Homebrew metadata before publishing anything.
+Release tags are `vVERSION`, while every packaged metadata surface uses `VERSION`. Put user-facing
+notes under `## [Unreleased]` in `CHANGELOG.md` while the Nix stamp is `*-dev`. Run
+`scripts/stamp-nix-version.sh VERSION` and commit `nix/version.nix` and the dated changelog before
+creating either a preview or stable tag. That command dates `## [Unreleased]` for every version other
+than `*-dev` and refuses the stamp when the section is missing or empty. A `*-dev` stamp does not
+touch the changelog. The release workflow verifies the tag, Nix stamp, changelog section, binary
+provenance, embedded Codex and Claude Code manifests, and generated Homebrew metadata before
+publishing anything.
 Packaged Windows archives are not published. Keep `scripts/test-installers.ps1` working on
 Windows PowerShell 5.1 when changing installer behavior, even though `install.ps1` is not a
 release asset.

@@ -81,6 +81,11 @@ jobs:
         run: go mod tidy -diff
       - name: Check Go formatting
         run: ./scripts/check-go-format.sh
+      - name: Check the Nix stamp and changelog
+        run: |
+          version=$(sed -n 's/^"\([^"]*\)"$/\1/p' nix/version.nix)
+          ./scripts/stamp-nix-version.sh --check "$version"
+          ./scripts/test-stamp-nix-version.sh
       - name: Run go vet
         run: go vet ./...
       - name: Enforce Go statement coverage floor

@@ -18,6 +18,10 @@ workflow invocation. Before creating the tag, stamp and commit the Nix package v
 scripts/stamp-nix-version.sh VERSION
 ```
 
+For any version other than `*-dev`, that command dates the leading `## [Unreleased]` section in
+`CHANGELOG.md`. It refuses the stamp when those notes are missing or empty, and `--check` refuses a
+tag whose changelog does not contain `## [VERSION] - YYYY-MM-DD` with at least one note.
+
 Plugin source manifests remain reusable templates. `cmd/packageextras` copies them into a staging
 tree and stamps both Codex and Claude Code copies while building release archives, so a packaging
 run never dirties the source manifests. GoReleaser uses only those staged plugin trees.

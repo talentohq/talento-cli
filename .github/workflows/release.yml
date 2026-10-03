@@ -31,6 +31,8 @@ jobs:
       - run: go mod verify
       - run: go mod tidy -diff
       - run: ./scripts/check-go-format.sh
+      - run: ./scripts/stamp-nix-version.sh --check "${GITHUB_REF_NAME#v}"
+      - run: sh scripts/test-stamp-nix-version.sh
       - run: ./scripts/check-workflow-policy.sh
       - run: ./scripts/check-go-coverage.sh
       - run: go test -race -count=1 ./...

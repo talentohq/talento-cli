@@ -219,10 +219,14 @@ git config tag.gpgSign true
 
 ### Stamp and commit on the default branch (`master` today)
 
+The feature commits that this stamp releases must already have their notes under `## [Unreleased]`
+in `CHANGELOG.md`. The stamp command dates that heading. It will not stamp a release version when
+the section is missing, empty, or still titled Unreleased.
+
 ```bash
 scripts/stamp-nix-version.sh 1.0.0
 scripts/stamp-nix-version.sh --check 1.0.0
-git add nix/version.nix README.md
+git add nix/version.nix CHANGELOG.md README.md
 git commit -m "release: stamp 1.0.0"
 git push origin master
 ```
