@@ -6,6 +6,8 @@ subset, and the live result decides the boundary.
 ## Working day
 
 - Inspect hours with `talento time ...`; use Talento's total, contract, and extra-hour figures.
+- Device details and unusual-activity warnings appear only when Talento returns them. An employee
+  read does not include them. Do not invent a device or a warning.
 - Starting/stopping an activity may commit immediately. Do not add a confirmation unless the result
   is a preview.
 - Broad team or office requests may be unavailable or reduced to the employee's own data. State the

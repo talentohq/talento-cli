@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.8] - Unreleased
+
+### Added
+
+- Schedule catalog commands: `talento schedules category-create`, `category-update`,
+  `pattern-create`, `pattern-update`, `set-hours`, `shift-create`, `shift-update`,
+  `assignment-update`, `assignment-remove`, and `reschedule-decide`.
+- CRM catalogue, automation, dashboard, and comment commands, plus `talento leads qualify`,
+  `talento leads disqualify`, and `talento opportunities convert-to-invoice`.
+- Agent skill guidance for schedule settings, on-call reschedules, clock-in review details,
+  and the expanded CRM surface.
+
+### Changed
+
+- `talento schedules assign` accepts a rotating shift. `--schedule-category-name` is optional
+  when that shift has one pattern.
+- `talento schedules reschedule-create`, `reschedule-update`, and `manage` accept on-call
+  changes. `--start-on` and `--end-on` are no longer required on create and manage.
+- `talento invoices list` includes every status unless `--status` names one.
+- Opportunity create and update accept an owner and product lines. Contact create and update
+  accept a provider.
+- Onboarding template actions document `responsible=direct` as the employee's direct manager.
+
 ## [1.0.7] - 2026-09-30
 
 ### Added

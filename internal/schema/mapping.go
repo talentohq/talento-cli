@@ -66,7 +66,7 @@ func domainFor(name string) string {
 		return "expenses"
 	case strings.Contains(name, "appointment"):
 		return "appointments"
-	case strings.Contains(name, "schedule") || strings.Contains(name, "reschedule") || strings.Contains(name, "availabilit"):
+	case strings.Contains(name, "schedule") || strings.Contains(name, "reschedule") || strings.Contains(name, "availabilit") || strings.Contains(name, "shift"):
 		return "schedules"
 	case strings.Contains(name, "clock_in") || strings.Contains(name, "activity"):
 		return "time"
@@ -80,7 +80,7 @@ func domainFor(name string) string {
 		return "contacts"
 	case strings.Contains(name, "lead"):
 		return "leads"
-	case strings.Contains(name, "opportunit"):
+	case strings.Contains(name, "opportunit") || strings.Contains(name, "closing_factor"):
 		return "opportunities"
 	case strings.Contains(name, "invoice") && !strings.Contains(name, "purchase"):
 		return "invoices"
@@ -135,6 +135,16 @@ var commandOverrides = map[string]string{
 	"create_reschedule":                    "reschedule-create",
 	"update_reschedule":                    "reschedule-update",
 	"swap_availabilities":                  "swap",
+	"update_schedule_assignment":           "assignment-update",
+	"remove_schedule_assignment":           "assignment-remove",
+	"create_schedule_category":             "category-create",
+	"update_schedule_category":             "category-update",
+	"create_schedule":                      "pattern-create",
+	"update_schedule":                      "pattern-update",
+	"set_schedule_hours":                   "set-hours",
+	"create_shift":                         "shift-create",
+	"update_shift":                         "shift-update",
+	"decide_reschedule":                    "reschedule-decide",
 	"list_appointments":                    "list",
 	"get_appointment":                      "get",
 	"create_appointment":                   "create",
@@ -189,6 +199,13 @@ var commandOverrides = map[string]string{
 	"get_customer":                         "get",
 	"create_customer":                      "create",
 	"edit_customer":                        "update",
+	"list_customer_categories":             "categories",
+	"create_customer_category":             "category-create",
+	"edit_customer_category":               "category-update",
+	"delete_customer_category":             "category-delete",
+	"create_customer_stage_category":       "stage-create",
+	"edit_customer_stage_category":         "stage-update",
+	"delete_customer_stage_category":       "stage-delete",
 	"list_contacts":                        "list",
 	"create_contact":                       "create",
 	"edit_contact":                         "update",
@@ -196,15 +213,34 @@ var commandOverrides = map[string]string{
 	"create_lead":                          "create",
 	"edit_lead":                            "update",
 	"convert_lead":                         "convert",
+	"qualify_lead":                         "qualify",
+	"disqualify_lead":                      "disqualify",
+	"create_lead_source":                   "source-create",
+	"edit_lead_source":                     "source-update",
+	"delete_lead_source":                   "source-delete",
 	"list_opportunities":                   "list",
 	"get_opportunity":                      "get",
 	"create_opportunity":                   "create",
 	"edit_opportunity":                     "update",
 	"close_opportunity":                    "close",
 	"reopen_opportunity":                   "reopen",
+	"list_opportunity_stages":              "stages",
+	"list_opportunity_stage_logs":          "stage-logs",
+	"create_opportunity_stage":             "stage-create",
+	"edit_opportunity_stage":               "stage-update",
+	"delete_opportunity_stage":             "stage-delete",
+	"list_closing_factors":                 "closing-factors",
+	"create_closing_factor":                "closing-factor-create",
+	"edit_closing_factor":                  "closing-factor-update",
+	"delete_closing_factor":                "closing-factor-delete",
+	"convert_opportunity_to_invoice":       "convert-to-invoice",
 	"list_providers":                       "list",
 	"create_provider":                      "create",
 	"edit_provider":                        "update",
+	"list_provider_categories":             "categories",
+	"create_provider_category":             "category-create",
+	"edit_provider_category":               "category-update",
+	"delete_provider_category":             "category-delete",
 	"list_items":                           "list",
 	"create_item":                          "create",
 	"edit_item":                            "update",
@@ -221,6 +257,17 @@ var commandOverrides = map[string]string{
 	"edit_view":                            "edit",
 	"write_view":                           "write",
 	"create_version":                       "version-create",
+	"get_crm_dashboard":                    "dashboard",
+	"list_crm_comments":                    "comments",
+	"create_crm_comment":                   "comment-create",
+	"create_assignment_category":           "assignment-category-create",
+	"edit_assignment_category":             "assignment-category-update",
+	"delete_assignment_category":           "assignment-category-delete",
+	"list_crm_automation_rules":            "automations",
+	"get_crm_automation_rule":              "automation",
+	"create_crm_automation_rule":           "automation-create",
+	"edit_crm_automation_rule":             "automation-update",
+	"delete_crm_automation_rule":           "automation-delete",
 }
 
 func commandFor(_ string, name string) string {

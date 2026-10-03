@@ -10,6 +10,24 @@ admin-wide access; inspect the live catalogue and the applied scope.
   decides; do not memorize a universal confirmation rule.
 - A successful absence, reschedule, booking, or other request may still be pending approval. Preserve
   its lifecycle state.
+- The schedule catalog and a person's assignment are different writes. List the catalog before naming
+  a category, weekly pattern, or rotating shift.
+- `talento schedules category-create`, `category-update`, `pattern-create`, `pattern-update`,
+  `set-hours`, `shift-create`, and `shift-update` change that catalog. They preview and wait for
+  confirmation. Weekdays on `set-hours` are 0 Sunday through 6 Saturday. Other weekdays stay as they are.
+- `talento schedules assign` names a category or a rotating shift. A shift with one pattern can omit
+  the category. `assignment-update` and `assignment-remove` need the person and the date the
+  assignment applies. Omitting the end date on an assignment replaces the current schedule from the
+  start date; including it is a temporary override.
+- An ordinary reschedule uses a date range plus a category, shift, or colleague. An on-call request
+  uses `request_kind=on_call`, `on_call_date`, and `on_call_mode` (`change`, `cover`, or `swap`).
+  Cover names who takes the shift. Swap names the colleague and their on-call date.
+- Managers approve or reject a pending request with `talento schedules reschedule-decide`. Passing
+  `approved` on create, update, or manage applies the change after confirmation. An on-call change
+  with no replacement has to be completed before it can be approved.
+- Manager and admin clock-in reads include the entry and exit device and review warnings when Talento
+  recorded them. If a line says the device was not recorded, leave it unknown. Employee reads do not
+  include those lines.
 
 ## Talent
 

@@ -2,7 +2,7 @@
   "contract_version": 1,
   "role": "employee",
   "captured_at": null,
-  "snapshot_sha256": "bf09bc008b6ceef1aa7aee1e5ed612f3abba1fbc3b3048d13bc2683e79504586",
+  "snapshot_sha256": "48203d417615c109834c68545c4913f81241a42d4d6dc10514015b5b2d8db69b",
   "tenant": "staging-company-a",
   "modules": ["self-service"],
   "representative_tools": ["get_employee_current_activity", "create_absence", "create_expense", "list_employee_tasks", "list_personal_todos", "list_trainings"],

@@ -9,6 +9,10 @@ Keep the two sides separate:
 ## Documents and money
 
 - Resolve the customer/provider and inspect existing drafts before creating another document.
+- `talento invoices list` includes draft, sent, rectified, and cancelled invoices unless `--status`
+  names one of those.
+- A won opportunity becomes a draft sales invoice through `talento opportunities convert-to-invoice`.
+  Use that command when the deal should be invoiced.
 - Pass line data exactly through the command schema. Do not calculate tax, discounts, withholdings,
   totals, or legal status yourself; use Talento's preview/result.
 - Invoice sending is available only if the live command exists. Because it communicates outside the

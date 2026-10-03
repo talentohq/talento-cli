@@ -21,3 +21,18 @@ does not edit the field definition; editing the definition is a separate CRM set
 
 Useful analysis includes stalled opportunities, neglected accounts, overdue next actions, and pipeline
 coverage. Use returned expected/actual amounts and dates; identify incomplete or truncated reads.
+
+## Pipeline, qualification, and catalogues
+
+- Qualify a lead with `talento leads qualify`. Disqualify with `talento leads disqualify` and the
+  reason the command requires. Qualification does not convert the lead.
+- A contact belongs to a customer or a provider. Pass the company the user named.
+- Opportunity lists accept owner, rotting, and expected-close filters. Create and update accept an
+  owner and product lines. The deal calculates totals.
+- `talento opportunities convert-to-invoice` turns a won opportunity into a draft sales invoice
+  after a preview. Use that command when the deal should be invoiced.
+- `talento crm dashboard` briefs overview, pipeline, or performance from the figures Talento returns.
+- Comments are `talento crm comments` and `talento crm comment-create`.
+- Stage, source, category, closing-factor, and automation catalogues are settings commands. List
+  the catalogue before creating a duplicate. Creates and edits of those catalogues commit
+  immediately, except automation rules, which preview. Deletes preview. The returned state decides.

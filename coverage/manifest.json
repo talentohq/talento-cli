@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "bf09bc008b6ceef1aa7aee1e5ed612f3abba1fbc3b3048d13bc2683e79504586",
+  "snapshot_sha256": "48203d417615c109834c68545c4913f81241a42d4d6dc10514015b5b2d8db69b",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -275,6 +275,60 @@
       "read_only": false
     },
     {
+      "tool": "update_schedule_assignment",
+      "domain": "schedules",
+      "command": "assignment-update",
+      "read_only": false
+    },
+    {
+      "tool": "remove_schedule_assignment",
+      "domain": "schedules",
+      "command": "assignment-remove",
+      "read_only": false
+    },
+    {
+      "tool": "create_schedule_category",
+      "domain": "schedules",
+      "command": "category-create",
+      "read_only": false
+    },
+    {
+      "tool": "update_schedule_category",
+      "domain": "schedules",
+      "command": "category-update",
+      "read_only": false
+    },
+    {
+      "tool": "create_schedule",
+      "domain": "schedules",
+      "command": "pattern-create",
+      "read_only": false
+    },
+    {
+      "tool": "update_schedule",
+      "domain": "schedules",
+      "command": "pattern-update",
+      "read_only": false
+    },
+    {
+      "tool": "set_schedule_hours",
+      "domain": "schedules",
+      "command": "set-hours",
+      "read_only": false
+    },
+    {
+      "tool": "create_shift",
+      "domain": "schedules",
+      "command": "shift-create",
+      "read_only": false
+    },
+    {
+      "tool": "update_shift",
+      "domain": "schedules",
+      "command": "shift-update",
+      "read_only": false
+    },
+    {
       "tool": "update_absence",
       "domain": "absences",
       "command": "update",
@@ -290,6 +344,12 @@
       "tool": "update_reschedule",
       "domain": "schedules",
       "command": "reschedule-update",
+      "read_only": false
+    },
+    {
+      "tool": "decide_reschedule",
+      "domain": "schedules",
+      "command": "reschedule-decide",
       "read_only": false
     },
     {
@@ -791,6 +851,48 @@
       "read_only": true
     },
     {
+      "tool": "list_opportunity_stages",
+      "domain": "opportunities",
+      "command": "stages",
+      "read_only": true
+    },
+    {
+      "tool": "list_closing_factors",
+      "domain": "opportunities",
+      "command": "closing-factors",
+      "read_only": true
+    },
+    {
+      "tool": "list_customer_categories",
+      "domain": "customers",
+      "command": "categories",
+      "read_only": true
+    },
+    {
+      "tool": "list_provider_categories",
+      "domain": "providers",
+      "command": "categories",
+      "read_only": true
+    },
+    {
+      "tool": "qualify_lead",
+      "domain": "leads",
+      "command": "qualify",
+      "read_only": false
+    },
+    {
+      "tool": "disqualify_lead",
+      "domain": "leads",
+      "command": "disqualify",
+      "read_only": false
+    },
+    {
+      "tool": "get_crm_dashboard",
+      "domain": "crm",
+      "command": "dashboard",
+      "read_only": true
+    },
+    {
       "tool": "list_crm_action_queue",
       "domain": "crm",
       "command": "list-crm-action-queue",
@@ -947,6 +1049,12 @@
       "read_only": true
     },
     {
+      "tool": "list_opportunity_stage_logs",
+      "domain": "opportunities",
+      "command": "stage-logs",
+      "read_only": true
+    },
+    {
       "tool": "get_opportunity",
       "domain": "opportunities",
       "command": "get",
@@ -965,6 +1073,18 @@
       "read_only": false
     },
     {
+      "tool": "list_crm_comments",
+      "domain": "crm",
+      "command": "comments",
+      "read_only": true
+    },
+    {
+      "tool": "create_crm_comment",
+      "domain": "crm",
+      "command": "comment-create",
+      "read_only": false
+    },
+    {
       "tool": "change_opportunity_stage",
       "domain": "opportunities",
       "command": "change-opportunity-stage",
@@ -980,6 +1100,168 @@
       "tool": "reopen_opportunity",
       "domain": "opportunities",
       "command": "reopen",
+      "read_only": false
+    },
+    {
+      "tool": "convert_opportunity_to_invoice",
+      "domain": "opportunities",
+      "command": "convert-to-invoice",
+      "read_only": false
+    },
+    {
+      "tool": "create_opportunity_stage",
+      "domain": "opportunities",
+      "command": "stage-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_opportunity_stage",
+      "domain": "opportunities",
+      "command": "stage-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_opportunity_stage",
+      "domain": "opportunities",
+      "command": "stage-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_customer_stage_category",
+      "domain": "customers",
+      "command": "stage-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_customer_stage_category",
+      "domain": "customers",
+      "command": "stage-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_customer_stage_category",
+      "domain": "customers",
+      "command": "stage-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_customer_category",
+      "domain": "customers",
+      "command": "category-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_customer_category",
+      "domain": "customers",
+      "command": "category-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_customer_category",
+      "domain": "customers",
+      "command": "category-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_provider_category",
+      "domain": "providers",
+      "command": "category-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_provider_category",
+      "domain": "providers",
+      "command": "category-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_provider_category",
+      "domain": "providers",
+      "command": "category-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_lead_source",
+      "domain": "leads",
+      "command": "source-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_lead_source",
+      "domain": "leads",
+      "command": "source-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_lead_source",
+      "domain": "leads",
+      "command": "source-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_assignment_category",
+      "domain": "crm",
+      "command": "assignment-category-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_assignment_category",
+      "domain": "crm",
+      "command": "assignment-category-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_assignment_category",
+      "domain": "crm",
+      "command": "assignment-category-delete",
+      "read_only": false
+    },
+    {
+      "tool": "create_closing_factor",
+      "domain": "opportunities",
+      "command": "closing-factor-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_closing_factor",
+      "domain": "opportunities",
+      "command": "closing-factor-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_closing_factor",
+      "domain": "opportunities",
+      "command": "closing-factor-delete",
+      "read_only": false
+    },
+    {
+      "tool": "list_crm_automation_rules",
+      "domain": "crm",
+      "command": "automations",
+      "read_only": true
+    },
+    {
+      "tool": "get_crm_automation_rule",
+      "domain": "crm",
+      "command": "automation",
+      "read_only": true
+    },
+    {
+      "tool": "create_crm_automation_rule",
+      "domain": "crm",
+      "command": "automation-create",
+      "read_only": false
+    },
+    {
+      "tool": "edit_crm_automation_rule",
+      "domain": "crm",
+      "command": "automation-update",
+      "read_only": false
+    },
+    {
+      "tool": "delete_crm_automation_rule",
+      "domain": "crm",
+      "command": "automation-delete",
       "read_only": false
     },
     {

@@ -283,7 +283,7 @@ func TestReviewedSnapshotFlagShapesAreFullyRecognized(t *testing.T) {
 			}
 		}
 	}
-	if len(snapshot.Tools) != 170 || properties != 975 || scalarArrays != 34 {
+	if len(snapshot.Tools) != 217 || properties != 1169 || scalarArrays != 37 {
 		t.Fatalf("audited tools=%d properties=%d scalar arrays=%d", len(snapshot.Tools), properties, scalarArrays)
 	}
 }

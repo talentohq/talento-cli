@@ -45,6 +45,19 @@ func TestNewGatewayToolsMapToStableCommands(t *testing.T) {
 		{"add_candidate_skill", "recruitment", "candidate-skill-add"},
 		{"update_candidate_skill", "recruitment", "candidate-skill-update"},
 		{"remove_candidate_skill", "recruitment", "candidate-skill-remove"},
+		{"create_shift", "schedules", "shift-create"},
+		{"update_shift", "schedules", "shift-update"},
+		{"set_schedule_hours", "schedules", "set-hours"},
+		{"create_schedule", "schedules", "pattern-create"},
+		{"decide_reschedule", "schedules", "reschedule-decide"},
+		{"list_closing_factors", "opportunities", "closing-factors"},
+		{"convert_opportunity_to_invoice", "opportunities", "convert-to-invoice"},
+		{"qualify_lead", "leads", "qualify"},
+		{"disqualify_lead", "leads", "disqualify"},
+		{"get_crm_dashboard", "crm", "dashboard"},
+		{"create_customer_category", "customers", "category-create"},
+		{"create_provider_category", "providers", "category-create"},
+		{"list_crm_automation_rules", "crm", "automations"},
 	}
 	for _, test := range tests {
 		t.Run(test.tool, func(t *testing.T) {

@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-09-30T12:00:00Z",
+  "generated_at": "2026-10-03T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -134,40 +134,40 @@
     },
     {
       "name": "list_clock_ins",
-      "description": "List clock-in/activity records for an employee. Shows daily summaries with total hours,\ncontract hours, and extra hours. Filter by date range using start_date and end_date\n(YYYY-MM-DD). If no dates provided, defaults to the current week.\nWhen the user says 'my hours' or 'how much have I worked', call this without employee_id.\nTo see another employee's hours, resolve their name first and pass employee_id.\n",
+      "description": "List clock-in/activity records for an employee. Shows daily summaries with total hours,\ncontract hours, and extra hours. For managers and admins, each clock-in also includes\nthe entry and exit device (browser, operating system, and a kind such as computer,\nphone, or tablet) when the punch was made in the browser or app, which of browser,\noperating system, or IP address differed, and review warnings for unusual activity\n(unusual time, unusual location, a different exit device, or an employee edit).\nRegular employees do not receive device details or review warnings, including on\ntheir own punches. If those lines are absent, say that device and unusual-activity\ndetails are only available to managers and admins. Do not say the device was not\nrecorded, and do not invent a device or a warning. If a device line says it was\nnot recorded, the punch has no device data. Do not guess a device type.\nEdited punches include the original times, and a punch still waiting for approval says so.\nFilter by date range using start_date and end_date\n(YYYY-MM-DD). If no dates provided, defaults to the current week.\nWhen the user says 'my hours' or 'how much have I worked', call this without employee_id.\nTo see another employee's hours, resolve their name first and pass employee_id.\nAlso use this when the user asks which device a clock-in used, or why the exit\ndevice differs from the entry.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
         "properties": {
-          "employee_id": {
-            "description": "Filter by specific employee ID. Only available for managers. If not specified, shows current employee's activities",
-            "type": "integer"
-          },
-          "employee_name": {
-            "description": "Filter by employee name (partial match). Use when asking about a specific employee's data.",
-            "type": "string"
-          },
-          "end_date": {
-            "description": "End date for filtering (YYYY-MM-DD format). Defaults to end of current week",
-            "format": "date",
-            "type": "string"
-          },
           "scope": {
-            "description": "Data scope. 'mine' = current user's own data (default). Clock-in records can only be viewed per employee. For team/office/all scope, a summary message will be returned instead.",
+            "type": "string",
             "enum": [
               "mine",
               "team",
               "office",
               "all"
             ],
-            "type": "string"
+            "description": "Data scope. 'mine' = current user's own data (default). Clock-in records can only be viewed per employee. For team/office/all scope, a summary message will be returned instead."
           },
           "start_date": {
-            "description": "Start date for filtering (YYYY-MM-DD format). Defaults to start of current week",
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "Start date for filtering (YYYY-MM-DD format). Defaults to start of current week"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "End date for filtering (YYYY-MM-DD format). Defaults to end of current week"
+          },
+          "employee_name": {
+            "type": "string",
+            "description": "Filter by employee name (partial match). Use when asking about a specific employee's data."
+          },
+          "employee_id": {
+            "type": "integer",
+            "description": "Filter by specific employee ID. Only available for managers. If not specified, shows current employee's activities"
           }
-        },
-        "type": "object"
+        }
       },
       "annotations": {
         "destructiveHint": false,
@@ -1566,42 +1566,82 @@
     },
     {
       "name": "create_reschedule",
-      "description": "Create a request to change an employee's schedule or swap shifts. Resolve employee by name if needed.\nReturns the created reschedule details. The request will need manager approval.\n",
+      "description": "Create a request to change an employee's schedule or swap shifts. Resolve employee by name if needed.\nThe request stays pending until a manager approves it. Managers and admins pass approved: true\nwhen the user wants the change applied now — that shows a preview and waits for confirm_action.\nFor an ordinary schedule, pass start_on, end_on, and a category, shift, or other_employee_name.\nFor a guardia (on-call), pass request_kind on_call, on_call_date, and on_call_mode change, cover,\nor swap. Cover needs replacement_employee_name. Swap needs swap_employee_name and swap_on_call_date.\nDo not use category or shift fields for a guardia.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
         "properties": {
-          "employee_name": {
-            "description": "Employee the request is for (partial match). Defaults to yourself; managers can name a team member.",
-            "type": "string"
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. Required."
           },
           "end_on": {
-            "description": "End date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. Required.",
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "End date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. Required."
           },
           "other_employee_name": {
-            "description": "Name of the colleague to swap shifts with (partial match).",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the colleague to swap shifts with (partial match)."
           },
           "schedule_category_name": {
-            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog."
           },
           "shift_name": {
-            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog."
           },
-          "start_on": {
-            "description": "Start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. Required.",
+          "employee_name": {
+            "type": "string",
+            "description": "Employee the request is for (partial match). Defaults to yourself; managers can name a team member."
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Managers and admins only. True applies the change now, after confirm_action. Omit or false to leave a pending request. Ignored for employees."
+          },
+          "request_kind": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "on_call"
+            ],
+            "description": "regular (default) for a schedule change. on_call for a guardia cover, swap, or change."
+          },
+          "on_call_mode": {
+            "type": "string",
+            "enum": [
+              "change",
+              "cover",
+              "swap"
+            ],
+            "description": "Guardia only. change moves it, cover asks someone to take it, swap exchanges two guardias."
+          },
+          "on_call_date": {
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "Guardia only. The day of the target employee's on-call shift (YYYY-MM-DD). Replaces start_on and end_on."
+          },
+          "on_call_starts_at": {
+            "type": "string",
+            "description": "Guardia only. When several shifts fall on on_call_date, the start time shown in the list."
+          },
+          "replacement_employee_name": {
+            "type": "string",
+            "description": "Guardia cover: who takes the shift (partial match). Also sets the replacement on a change before it can be approved."
+          },
+          "swap_employee_name": {
+            "type": "string",
+            "description": "Guardia swap: the colleague whose on-call shift is exchanged (partial match)."
+          },
+          "swap_on_call_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Guardia swap: the day of the colleague's on-call shift (YYYY-MM-DD)."
           }
         },
-        "required": [
-          "start_on",
-          "end_on"
-        ],
-        "type": "object"
+        "required": []
       },
       "annotations": {
         "destructiveHint": false,
@@ -1837,42 +1877,82 @@
     },
     {
       "name": "manage_schedule",
-      "description": "Unified tool for schedule changes. Routes to reschedule creation or availability swap\nbased on context. Returns the result of the schedule operation.\n",
+      "description": "Unified tool for schedule changes. Routes to reschedule creation or availability swap\nbased on context. Shows a preview; nothing is applied until confirm_action.\nManagers and admins pass approved: true when the user wants a reschedule applied now.\nOmit it to leave a pending request. A same-person day swap ignores approved and applies on confirm.\nFor an ordinary schedule, pass start_on, end_on, and a category, shift, or other_employee_name.\nFor a guardia (on-call), pass request_kind on_call, on_call_date, and on_call_mode change, cover,\nor swap. Cover needs replacement_employee_name. Swap needs swap_employee_name and swap_on_call_date.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
         "properties": {
-          "employee_name": {
-            "description": "Employee the change is for (partial match). Defaults to yourself; managers can name a team member.",
-            "type": "string"
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. Required."
           },
           "end_on": {
-            "description": "End date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. Required.",
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "End date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. Required."
           },
           "other_employee_name": {
-            "description": "Name of the colleague to swap shifts with (partial match).",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the colleague to swap shifts with (partial match)."
           },
           "schedule_category_name": {
-            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog."
           },
           "shift_name": {
-            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog."
           },
-          "start_on": {
-            "description": "Start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. Required.",
+          "employee_name": {
+            "type": "string",
+            "description": "Employee the change is for (partial match). Defaults to yourself; managers can name a team member."
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Managers and admins only. True applies the reschedule now, after confirm_action. Omit or false to leave a pending request. Ignored for employees and for a same-person day swap."
+          },
+          "request_kind": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "on_call"
+            ],
+            "description": "regular (default) for a schedule change. on_call for a guardia."
+          },
+          "on_call_mode": {
+            "type": "string",
+            "enum": [
+              "change",
+              "cover",
+              "swap"
+            ],
+            "description": "Guardia only. change, cover, or swap."
+          },
+          "on_call_date": {
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "Guardia only. Day of the on-call shift (YYYY-MM-DD). Replaces start_on and end_on."
+          },
+          "on_call_starts_at": {
+            "type": "string",
+            "description": "Guardia only. When several shifts fall on that day, the start time shown in the list."
+          },
+          "replacement_employee_name": {
+            "type": "string",
+            "description": "Guardia cover: who takes the shift (partial match)."
+          },
+          "swap_employee_name": {
+            "type": "string",
+            "description": "Guardia swap: colleague whose on-call shift is exchanged (partial match)."
+          },
+          "swap_on_call_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Guardia swap: day of the colleague's on-call shift (YYYY-MM-DD)."
           }
         },
-        "required": [
-          "start_on",
-          "end_on"
-        ],
-        "type": "object"
+        "required": []
       },
       "annotations": {
         "destructiveHint": true,
@@ -1973,39 +2053,376 @@
     },
     {
       "name": "assign_schedule",
-      "description": "Assign a work schedule (a category from the catalog) to an employee or a whole team, for a\ndate range (managers/admins only). Use list_schedule_catalog FIRST to get the real category\nnames — never invent a schedule. Resolve the employee/team and the category BY NAME.\n\nTwo modes, inferred from the dates:\n- TEMPORARY override: pass start_on AND end_on (e.g. \"next week\") — applies only for that range,\n  the previous schedule resumes automatically afterwards.\n- PERMANENT change: pass start_on with NO end_on (e.g. \"from Monday on\") — this REPLACES the\n  current schedule from that date and closes the previous one. Make this explicit to the user.\n\nShows a preview; nothing is applied until confirm_action.\n",
+      "description": "Assign a work schedule (a category from the catalog) to an employee or a whole team, for a\ndate range (managers/admins only). Use list_schedule_catalog FIRST to get the real category\nand shift names — never invent a schedule. Resolve the employee/team and the category BY NAME.\nPass shift_name to assign a rotating shift. When that shift has a single pattern, the category\ncan be omitted and that pattern is used.\n\nTwo modes, inferred from the dates:\n- TEMPORARY override: pass start_on AND end_on (e.g. \"next week\") — applies only for that range,\n  the previous schedule resumes automatically afterwards.\n- PERMANENT change: pass start_on with NO end_on (e.g. \"from Monday on\") — this REPLACES the\n  current schedule from that date and closes the previous one. Make this explicit to the user.\n\nShows a preview; nothing is applied until confirm_action.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "employee_name": {
-            "description": "Employee to assign it to (partial match). Use this OR team_name.",
-            "type": "string"
-          },
-          "end_on": {
-            "description": "Last day of the schedule (YYYY-MM-DD). Omit for a PERMANENT change that replaces the current schedule. Include for a TEMPORARY override.",
-            "format": "date",
-            "type": "string"
-          },
           "schedule_category_name": {
-            "description": "Name of the schedule/category to assign (partial match), as shown by list_schedule_catalog. Example: 'Turno de mañana', 'Horario oficina'.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the schedule/category to assign (partial match), as shown by list_schedule_catalog. Example: 'Turno de mañana', 'Horario oficina'. Optional when shift_name has exactly one pattern."
           },
-          "start_on": {
-            "description": "Date the schedule starts (YYYY-MM-DD). Required. Today or future.",
-            "format": "date",
-            "type": "string"
+          "shift_name": {
+            "type": "string",
+            "description": "Name of the rotating shift to assign (partial match), as shown by list_schedule_catalog. Stored together with the category."
+          },
+          "employee_name": {
+            "type": "string",
+            "description": "Employee to assign it to (partial match). Use this OR team_name."
           },
           "team_name": {
-            "description": "Team to assign it to — applies to every active member (partial match). Use this OR employee_name.",
-            "type": "string"
+            "type": "string",
+            "description": "Team to assign it to — applies to every active member (partial match). Use this OR employee_name."
+          },
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Date the schedule starts (YYYY-MM-DD). Required. Today or future."
+          },
+          "end_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day of the schedule (YYYY-MM-DD). Omit for a PERMANENT change that replaces the current schedule. Include for a TEMPORARY override."
           }
         },
         "required": [
-          "schedule_category_name",
           "start_on"
         ],
-        "type": "object"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_schedule_assignment",
+      "description": "Change the start or end date of an employee's current schedule assignment (managers/admins only).\nIdentify the person by employee_name and the assignment by on_date, a day it covers. Pass start_on\nto move the start, end_on to set the last day, or end_on as an empty string to leave it open-ended.\nShows a preview; nothing changes until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "employee_name": {
+            "type": "string",
+            "description": "Employee whose assignment to change (partial match)."
+          },
+          "on_date": {
+            "type": "string",
+            "format": "date",
+            "description": "A day the assignment covers (YYYY-MM-DD)."
+          },
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "New start date (YYYY-MM-DD). Today or later. Omit to keep the current start."
+          },
+          "end_on": {
+            "type": "string",
+            "description": "New last day (YYYY-MM-DD). Pass an empty string to make the assignment open-ended. Omit to keep the current end."
+          }
+        },
+        "required": [
+          "employee_name",
+          "on_date"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "remove_schedule_assignment",
+      "description": "Remove the schedule assignment that covers a given day for an employee (managers/admins only).\nIdentify the person by employee_name and the assignment by on_date. Shows a preview naming the\nschedule, the shift when there is one, and the date range that will disappear. Nothing is\nremoved until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "employee_name": {
+            "type": "string",
+            "description": "Employee whose assignment to remove (partial match)."
+          },
+          "on_date": {
+            "type": "string",
+            "format": "date",
+            "description": "A day the assignment covers (YYYY-MM-DD)."
+          }
+        },
+        "required": [
+          "employee_name",
+          "on_date"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_schedule_category",
+      "description": "Create a schedule category in the company catalog (schedule settings only). This is the named\ngroup, such as \"Morning shift\", not an employee's assignment and not the weekly hours.\nPass name and an optional description. Payroll, night hours and overtime stay in the settings\nscreen. Shows a preview; nothing is created until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the new schedule category."
+          },
+          "description": {
+            "type": "string",
+            "description": "Optional description."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_schedule_category",
+      "description": "Rename a schedule category, change its description, or retire it with active: false\n(schedule settings only). Identify it by name from list_schedule_catalog. There is no delete.\nShows a preview; nothing changes until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Current category name (partial match)."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "New name. Omit to keep the current name."
+          },
+          "description": {
+            "type": "string",
+            "description": "New description. Omit to keep the current one."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "False retires the category. True makes it available again."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_schedule",
+      "description": "Add a weekly pattern to a schedule category (schedule settings only). This is the named\ntimetable with a start date, not an assignment to a person. Call list_schedule_catalog first\nand pass the real category name. Use set_schedule_hours afterwards for the weekday hours.\nShows a preview; nothing is created until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "category_name": {
+            "type": "string",
+            "description": "Schedule category the pattern belongs to (partial match)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the pattern, for example 'Summer hours'."
+          },
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "First day the pattern is valid (YYYY-MM-DD)."
+          },
+          "end_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Last day the pattern is valid. Omit to leave it open."
+          }
+        },
+        "required": [
+          "category_name",
+          "name",
+          "start_on"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_schedule",
+      "description": "Rename a weekly pattern or change the dates it is valid (schedule settings only). Identify the\ncategory and the pattern by name from list_schedule_catalog. Pass end_on as an empty string to\nleave the pattern open-ended. To retire it, set end_on. There is no delete.\nShows a preview; nothing changes until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "category_name": {
+            "type": "string",
+            "description": "Schedule category (partial match)."
+          },
+          "schedule_name": {
+            "type": "string",
+            "description": "Pattern name (partial match)."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "New pattern name."
+          },
+          "start_on": {
+            "type": "string",
+            "format": "date",
+            "description": "New first valid day (YYYY-MM-DD)."
+          },
+          "end_on": {
+            "type": "string",
+            "description": "New last valid day (YYYY-MM-DD), or an empty string to leave it open. Omit to keep the current end."
+          }
+        },
+        "required": [
+          "category_name",
+          "schedule_name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "set_schedule_hours",
+      "description": "Replace the hours of a weekly pattern for the weekdays you name (schedule settings only).\nIdentify the category, and the pattern when the category has more than one. Weekdays are\n0 Sunday through 6 Saturday. Other weekdays stay as they are. Pass free_schedule: true for\na day with no fixed hours. Shows a preview; nothing changes until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "category_name": {
+            "type": "string",
+            "description": "Schedule category (partial match)."
+          },
+          "schedule_name": {
+            "type": "string",
+            "description": "Pattern name. Omit to use the pattern active today."
+          },
+          "weekdays": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 6
+            },
+            "minItems": 1,
+            "description": "Weekdays to replace, 0 Sunday through 6 Saturday."
+          },
+          "start_hour": {
+            "type": "string",
+            "description": "Start time HH:MM. Required unless free_schedule is true."
+          },
+          "end_hour": {
+            "type": "string",
+            "description": "End time HH:MM. Required unless free_schedule is true. An end at or before the start is an overnight range."
+          },
+          "free_schedule": {
+            "type": "boolean",
+            "description": "True replaces those weekdays with a free day (no fixed hours)."
+          }
+        },
+        "required": [
+          "category_name",
+          "weekdays"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_shift",
+      "description": "Create a rotating shift from schedule categories, in the order people rotate through them\n(schedule settings only). One category name per week of the rotation. Call list_schedule_catalog\nfirst and pass the real category names. Shows a preview; nothing is created until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the rotating shift."
+          },
+          "schedule_category_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "Schedule category names in rotation order. The first name is week 1."
+          }
+        },
+        "required": [
+          "name",
+          "schedule_category_names"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "update_shift",
+      "description": "Rename a rotating shift or replace the schedule categories it rotates through, in order\n(schedule settings only). Passing schedule_category_names replaces the whole rotation.\nThere is no delete. Shows a preview; nothing changes until confirm_action.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "shift_name": {
+            "type": "string",
+            "description": "Current shift name (partial match)."
+          },
+          "new_name": {
+            "type": "string",
+            "description": "New name. Omit to keep the current name."
+          },
+          "schedule_category_names": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Replacement rotation, in order. Omit to keep the current categories."
+          }
+        },
+        "required": [
+          "shift_name"
+        ],
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
@@ -2165,44 +2582,129 @@
     },
     {
       "name": "update_reschedule",
-      "description": "Update a pending reschedule request (shift-change request). Identify it by 'date' (a day the\nrequest covers) — never ask the user for an ID. For a manager editing someone else's request,\nalso pass 'employee_name'. If several pending requests match, the tool returns the options so\nyou can ask which one. Use list_reschedules first if you need to see what's pending. Only\npending requests can be updated. Then provide the new values (start_on, end_on, etc.).\n",
+      "description": "Update a pending reschedule request (shift-change request). Identify it by 'date' (a day the\nrequest covers) — never ask the user for an ID. For a manager editing someone else's request,\nalso pass 'employee_name'. If several pending requests match, the tool returns the options so\nyou can ask which one. Use list_reschedules first if you need to see what's pending. Only\npending requests can be updated. Then provide the new values (start_on, end_on, etc.).\nManagers and admins pass approved: true to apply the edited request now — that shows a preview\nand waits for confirm_action. Omit it to keep the request pending.\nFor a guardia, pass request_kind on_call with on_call_date and on_call_mode. Use\nreplacement_employee_name to name who takes a change or a cover before it can be approved.\nA swap needs swap_employee_name and swap_on_call_date.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "date": {
-            "description": "A day the reschedule request covers (YYYY-MM-DD). Preferred way to identify the request.",
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "A day the reschedule request covers (YYYY-MM-DD). Preferred way to identify the request."
           },
           "employee_name": {
-            "description": "Name of the employee whose request to update (managers only). Defaults to the current employee.",
-            "type": "string"
-          },
-          "end_on": {
-            "description": "New end date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. If not provided, keeps the current end date.",
-            "format": "date",
-            "type": "string"
-          },
-          "other_employee_name": {
-            "description": "Name of the colleague to swap shifts with (partial match).",
-            "type": "string"
-          },
-          "schedule_category_name": {
-            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
-          },
-          "shift_name": {
-            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog.",
-            "type": "string"
+            "type": "string",
+            "description": "Name of the employee whose request to update (managers only). Defaults to the current employee."
           },
           "start_on": {
-            "description": "New start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. If not provided, keeps the current start date.",
+            "type": "string",
             "format": "date",
-            "type": "string"
+            "description": "New start date of the reschedule period in YYYY-MM-DD format. Cannot be in the past. If not provided, keeps the current start date."
+          },
+          "end_on": {
+            "type": "string",
+            "format": "date",
+            "description": "New end date of the reschedule period in YYYY-MM-DD format. Must be greater than or equal to start_on. If not provided, keeps the current end date."
+          },
+          "other_employee_name": {
+            "type": "string",
+            "description": "Name of the colleague to swap shifts with (partial match)."
+          },
+          "schedule_category_name": {
+            "type": "string",
+            "description": "Name of the schedule/category to change to (partial match), as shown by list_schedule_catalog."
+          },
+          "shift_name": {
+            "type": "string",
+            "description": "Name of the shift to change to (partial match), as shown by list_schedule_catalog."
+          },
+          "approved": {
+            "type": "boolean",
+            "description": "Managers and admins only. True applies the edited request now, after confirm_action. Omit or false to leave it pending. Ignored for employees."
+          },
+          "request_kind": {
+            "type": "string",
+            "enum": [
+              "regular",
+              "on_call"
+            ],
+            "description": "regular for a schedule change. on_call for a guardia."
+          },
+          "on_call_mode": {
+            "type": "string",
+            "enum": [
+              "change",
+              "cover",
+              "swap"
+            ],
+            "description": "Guardia only. change, cover, or swap."
+          },
+          "on_call_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Guardia only. Day of the on-call shift (YYYY-MM-DD). Omit to keep the current one."
+          },
+          "on_call_starts_at": {
+            "type": "string",
+            "description": "Guardia only. When several shifts fall on that day, the start time shown in the list."
+          },
+          "replacement_employee_name": {
+            "type": "string",
+            "description": "Who takes the guardia (partial match). Required for cover, and before a change can be approved."
+          },
+          "swap_employee_name": {
+            "type": "string",
+            "description": "Guardia swap: colleague whose on-call shift is exchanged (partial match)."
+          },
+          "swap_on_call_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Guardia swap: day of the colleague's on-call shift (YYYY-MM-DD)."
           }
         },
-        "type": "object"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "decide_reschedule",
+      "description": "Approve or reject a pending shift-change request (managers and admins only). Identify it by\n'date' (a day the request covers) and, for someone else's request, 'employee_name'. Never ask\nfor an id. If several pending requests match, the tool lists them so you can ask which one.\nShows a preview; nothing changes until confirm_action. Approving updates the calendar. An\non-call change with no replacement must be completed with update_reschedule first.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "description": "A day the pending request covers (YYYY-MM-DD)."
+          },
+          "employee_name": {
+            "type": "string",
+            "description": "Employee whose request to decide (partial match). Defaults to yourself."
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "description": "approve applies the request. reject leaves the calendar unchanged."
+          },
+          "comment": {
+            "type": "string",
+            "description": "Optional note stored on the approval."
+          }
+        },
+        "required": [
+          "date",
+          "action"
+        ],
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
@@ -4341,48 +4843,28 @@
       "description": "Create an onboarding process template with actions/tasks.\nUse when the user wants to design an onboarding plan, create onboarding steps, or set up a new hire checklist.\n\nIMPORTANT: This creates a TEMPLATE, not an onboarding for a specific employee.\nTemplate are automatically assigned to new employees based on visibility rules.\nThe user cannot start an onboarding for a specific employee through this tool.\n\nActions define what needs to happen and when, relative to the employee's start date:\n- phase 'before_start': action happens X days/weeks/months BEFORE the employee starts\n- phase 'after_start': action happens X days/weeks/months AFTER the employee starts\n- days=0 with after_start: action happens on the start date itself\n\nExamples:\n- \"create an onboarding for developers\" → name=\"Developer Onboarding\", actions with setup laptop, IDE, repo access, etc.\n- \"create a simple onboarding checklist\" → name=\"General Onboarding\", 5-7 common actions\n- \"make an onboarding with tasks before and after start\" → mix of before_start and after_start phases\n\nSuggest a good set of actions when the user gives a vague request. Think about:\n- Before start: equipment setup, accounts creation, workspace preparation\n- First day: welcome, tour, team introduction, paperwork\n- First week: training, tools setup, buddy introduction\n- First month: 30-day check-in, goal setting, feedback session\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Template name. Descriptive and specific. Example: 'Engineering Team Onboarding', 'Sales New Hire Checklist'"
+          },
           "actions": {
+            "type": "array",
             "description": "List of onboarding actions/tasks. Each action defines WHAT needs to happen, WHEN (relative to start date), and WHO is responsible.",
             "items": {
+              "type": "object",
               "properties": {
-                "days": {
-                  "description": "Number of days/weeks/months before or after start date. Default: 0.",
-                  "minimum": 0,
-                  "type": "integer"
+                "name": {
+                  "type": "string",
+                  "description": "Action name. Short and clear. Must be unique within the template."
                 },
                 "description": {
-                  "description": "Detailed description of what needs to be done.",
-                  "type": "string"
-                },
-                "name": {
-                  "description": "Action name. Short and clear. Must be unique within the template.",
-                  "type": "string"
-                },
-                "needs_approval": {
-                  "description": "Whether action needs manager approval. Default: false.",
-                  "type": "boolean"
-                },
-                "period": {
-                  "description": "Unit for the 'days' field. Default: 'days'.",
-                  "enum": [
-                    "days",
-                    "weeks",
-                    "months"
-                  ],
-                  "type": "string"
-                },
-                "phase": {
-                  "description": "When relative to start date. 'before_start' = before arrival. 'after_start' = after start (default).",
-                  "enum": [
-                    "before_start",
-                    "after_start"
-                  ],
-                  "type": "string"
+                  "type": "string",
+                  "description": "Detailed description of what needs to be done."
                 },
                 "responsible": {
-                  "description": "Who performs this action. 'direct' = the new employee themselves (default). 'team_manager' = their team manager. 'office_manager' = the office manager. 'specific' = a named employee (requires responsible_employee_name with a real person's name, NOT a department like 'HR').",
+                  "type": "string",
                   "enum": [
                     "direct",
                     "superior",
@@ -4390,33 +4872,53 @@
                     "office_manager",
                     "team_manager"
                   ],
-                  "type": "string"
+                  "description": "Who performs this action. 'direct' = the employee's direct manager (default). 'superior' = any superior manager. 'team_manager' = their team manager. 'office_manager' = the office manager. 'specific' = a named employee (requires responsible_employee_name with a real person's name, NOT a department like 'HR')."
                 },
                 "responsible_employee_name": {
-                  "description": "ONLY when responsible='specific'. Name of the person responsible (partial match).",
-                  "type": "string"
+                  "type": "string",
+                  "description": "ONLY when responsible='specific'. Name of the person responsible (partial match)."
+                },
+                "days": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of days/weeks/months before or after start date. Default: 0."
+                },
+                "period": {
+                  "type": "string",
+                  "enum": [
+                    "days",
+                    "weeks",
+                    "months"
+                  ],
+                  "description": "Unit for the 'days' field. Default: 'days'."
+                },
+                "phase": {
+                  "type": "string",
+                  "enum": [
+                    "before_start",
+                    "after_start"
+                  ],
+                  "description": "When relative to start date. 'before_start' = before arrival. 'after_start' = after start (default)."
                 },
                 "send_notification": {
-                  "description": "Send email notification when action is due. Default: false.",
-                  "type": "boolean"
+                  "type": "boolean",
+                  "description": "Send email notification when action is due. Default: false."
+                },
+                "needs_approval": {
+                  "type": "boolean",
+                  "description": "Whether action needs manager approval. Default: false."
                 }
               },
               "required": [
                 "name"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "name": {
-            "description": "Template name. Descriptive and specific. Example: 'Engineering Team Onboarding', 'Sales New Hire Checklist'",
-            "type": "string"
+              ]
+            }
           }
         },
         "required": [
           "name"
         ],
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -4430,41 +4932,34 @@
       "description": "Update an existing onboarding template — rename it, add new actions, or remove existing actions.\n\nResolve the template by name or ID.\nTo add actions: pass them in 'add_actions' (same format as create).\nTo remove actions: pass action names in 'remove_actions'.\nTo rename: pass new 'name'.\n\nYou can add and remove actions in the same call.\nAction names must be unique within the template — adding a duplicate name will fail.\n\nExamples:\n- \"add a 90-day review to the engineering onboarding\" → template_name=\"Engineering\", add_actions=[{name: \"90-day review\", days: 90, phase: \"after_start\"}]\n- \"remove the laptop setup from the sales onboarding\" → template_name=\"Sales\", remove_actions=[\"Set up laptop\"]\n- \"rename the general onboarding to 'Standard Onboarding'\" → template_name=\"General\", name=\"Standard Onboarding\"\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "template_id": {
+            "type": "integer",
+            "description": "Onboarding template ID."
+          },
+          "template_name": {
+            "type": "string",
+            "description": "Template name (partial match)."
+          },
+          "name": {
+            "type": "string",
+            "description": "New template name (for renaming)."
+          },
           "add_actions": {
+            "type": "array",
             "description": "Actions to add (same format as create_onboarding_template actions).",
             "items": {
+              "type": "object",
               "properties": {
-                "days": {
-                  "minimum": 0,
-                  "type": "integer"
+                "name": {
+                  "type": "string"
                 },
                 "description": {
                   "type": "string"
                 },
-                "name": {
-                  "type": "string"
-                },
-                "needs_approval": {
-                  "type": "boolean"
-                },
-                "period": {
-                  "enum": [
-                    "days",
-                    "weeks",
-                    "months"
-                  ],
-                  "type": "string"
-                },
-                "phase": {
-                  "enum": [
-                    "before_start",
-                    "after_start"
-                  ],
-                  "type": "string"
-                },
                 "responsible": {
+                  "type": "string",
                   "enum": [
                     "direct",
                     "superior",
@@ -4472,43 +4967,51 @@
                     "office_manager",
                     "team_manager"
                   ],
-                  "type": "string"
+                  "description": "Who performs this action. 'direct' = the employee's direct manager (default). 'superior' = any superior manager. 'team_manager' = their team manager. 'office_manager' = the office manager. 'specific' = a named employee (requires responsible_employee_name with a real person's name, NOT a department like 'HR')."
                 },
                 "responsible_employee_name": {
                   "type": "string"
                 },
+                "days": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "period": {
+                  "type": "string",
+                  "enum": [
+                    "days",
+                    "weeks",
+                    "months"
+                  ]
+                },
+                "phase": {
+                  "type": "string",
+                  "enum": [
+                    "before_start",
+                    "after_start"
+                  ]
+                },
                 "send_notification": {
+                  "type": "boolean"
+                },
+                "needs_approval": {
                   "type": "boolean"
                 }
               },
               "required": [
                 "name"
-              ],
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "name": {
-            "description": "New template name (for renaming).",
-            "type": "string"
+              ]
+            }
           },
           "remove_actions": {
-            "description": "Names of actions to remove from the template.",
+            "type": "array",
             "items": {
               "type": "string"
             },
-            "type": "array"
-          },
-          "template_id": {
-            "description": "Onboarding template ID.",
-            "type": "integer"
-          },
-          "template_name": {
-            "description": "Template name (partial match).",
-            "type": "string"
+            "description": "Names of actions to remove from the template."
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
@@ -5984,29 +6487,29 @@
     },
     {
       "name": "list_contacts",
-      "description": "List CRM contacts (people at the customer companies you can access). Search by name, email, job title or company name. Use detailed format only when a contact ID is needed for a follow-up edit.",
+      "description": "List CRM contacts for the account, including provider contacts and contacts with no company. Search by name, email, job title or company name. Use detailed format only when a contact ID is needed for a follow-up edit.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
           "id": {
-            "description": "Specific contact ID.",
-            "type": "integer"
+            "type": "integer",
+            "description": "Specific contact ID."
+          },
+          "search": {
+            "type": "string",
+            "description": "Search by contact name, email, job title, or company name (partial, accent-insensitive)."
           },
           "response_format": {
-            "description": "concise by default; detailed includes system IDs.",
+            "type": "string",
             "enum": [
               "concise",
               "detailed"
             ],
-            "type": "string"
-          },
-          "search": {
-            "description": "Search by contact name, email, job title, or company name (partial, accent-insensitive).",
-            "type": "string"
+            "description": "concise by default; detailed includes system IDs."
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -6017,38 +6520,43 @@
     },
     {
       "name": "create_contact",
-      "description": "Create a CRM contact (a person). Optionally link it to a customer by name (resolved among the customers you can access). Only 'name' is required.",
+      "description": "Create a CRM contact (a person). Optionally link it to a customer or a provider by name, not both. Only 'name' is required.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Contact full name."
+          },
+          "email": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "description": "Job title."
+          },
+          "phone": {
+            "type": "string",
+            "description": "Phone number."
+          },
           "address": {
-            "additionalProperties": false,
+            "type": "object",
             "description": "Postal address for this record.",
             "properties": {
               "address_a": {
-                "description": "Street address.",
-                "type": "string"
+                "type": "string",
+                "description": "Street address."
               },
               "address_b": {
-                "description": "Additional address line.",
-                "type": "string"
-              },
-              "city": {
-                "type": "string"
-              },
-              "country_code": {
-                "description": "ISO country code, e.g. ES.",
-                "type": "string"
-              },
-              "latitude": {
-                "type": "number"
-              },
-              "longitude": {
-                "type": "number"
+                "type": "string",
+                "description": "Additional address line."
               },
               "post_code": {
-                "description": "Postal code.",
+                "type": "string",
+                "description": "Postal code."
+              },
+              "city": {
                 "type": "string"
               },
               "province": {
@@ -6059,18 +6567,37 @@
               },
               "state_code": {
                 "type": "string"
+              },
+              "country_code": {
+                "type": "string",
+                "description": "ISO country code, e.g. ES."
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
               }
             },
-            "type": "object"
+            "additionalProperties": false
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Customer to link the contact to. Do not combine with provider_name."
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "Provider to link the contact to. Do not combine with customer_name."
           },
           "custom_fields": {
+            "type": "array",
             "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
-              "additionalProperties": false,
+              "type": "object",
               "properties": {
-                "currency_code": {
-                  "description": "Currency code for currency fields, e.g. EUR.",
-                  "type": "string"
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
                 },
                 "field_id": {
                   "type": "integer"
@@ -6078,56 +6605,36 @@
                 "field_name": {
                   "type": "string"
                 },
-                "field_uuid": {
-                  "description": "Public custom field definition UUID.",
-                  "type": "string"
+                "value": {
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                },
+                "currency_code": {
+                  "type": "string",
+                  "description": "Currency code for currency fields, e.g. EUR."
                 },
                 "option_ids": {
-                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields.",
+                  "type": "array",
                   "items": {
                     "type": "integer"
                   },
-                  "type": "array"
+                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields."
                 },
                 "option_labels": {
-                  "description": "Exact option labels for single_select or multi_select fields.",
+                  "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "type": "array"
-                },
-                "value": {
-                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Exact option labels for single_select or multi_select fields."
                 }
               },
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "customer_name": {
-            "description": "Name of the customer (company) to link the contact to.",
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "name": {
-            "description": "Contact full name.",
-            "type": "string"
-          },
-          "phone": {
-            "description": "Phone number.",
-            "type": "string"
-          },
-          "title": {
-            "description": "Job title.",
-            "type": "string"
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "name"
         ],
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -6138,38 +6645,47 @@
     },
     {
       "name": "edit_contact",
-      "description": "Edit a CRM contact (a person at a client company — NOT a TalentoHQ employee). Use this to change a contact's job title (cargo), email, name or linked customer. Find by contact_id or find_by_name. Only provide the fields to change.",
+      "description": "Edit a CRM contact (a person at a client company — NOT a TalentoHQ employee). Use this to change a contact's job title (cargo), email, name, or linked customer or provider. Find by contact_id or find_by_name. Only provide the fields to change. Pass customer_name or provider_name, not both.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "contact_id": {
+            "type": "integer"
+          },
+          "find_by_name": {
+            "type": "string",
+            "description": "Search the contact by name, email, job title or company name."
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
           "address": {
-            "additionalProperties": false,
+            "type": "object",
             "description": "Postal address for this record.",
             "properties": {
               "address_a": {
-                "description": "Street address.",
-                "type": "string"
+                "type": "string",
+                "description": "Street address."
               },
               "address_b": {
-                "description": "Additional address line.",
-                "type": "string"
-              },
-              "city": {
-                "type": "string"
-              },
-              "country_code": {
-                "description": "ISO country code, e.g. ES.",
-                "type": "string"
-              },
-              "latitude": {
-                "type": "number"
-              },
-              "longitude": {
-                "type": "number"
+                "type": "string",
+                "description": "Additional address line."
               },
               "post_code": {
-                "description": "Postal code.",
+                "type": "string",
+                "description": "Postal code."
+              },
+              "city": {
                 "type": "string"
               },
               "province": {
@@ -6180,21 +6696,37 @@
               },
               "state_code": {
                 "type": "string"
+              },
+              "country_code": {
+                "type": "string",
+                "description": "ISO country code, e.g. ES."
+              },
+              "latitude": {
+                "type": "number"
+              },
+              "longitude": {
+                "type": "number"
               }
             },
-            "type": "object"
+            "additionalProperties": false
           },
-          "contact_id": {
-            "type": "integer"
+          "customer_name": {
+            "type": "string",
+            "description": "Customer to link the contact to. Do not combine with provider_name."
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "Provider to link the contact to. Do not combine with customer_name."
           },
           "custom_fields": {
+            "type": "array",
             "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
-              "additionalProperties": false,
+              "type": "object",
               "properties": {
-                "currency_code": {
-                  "description": "Currency code for currency fields, e.g. EUR.",
-                  "type": "string"
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
                 },
                 "field_id": {
                   "type": "integer"
@@ -6202,54 +6734,33 @@
                 "field_name": {
                   "type": "string"
                 },
-                "field_uuid": {
-                  "description": "Public custom field definition UUID.",
-                  "type": "string"
+                "value": {
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                },
+                "currency_code": {
+                  "type": "string",
+                  "description": "Currency code for currency fields, e.g. EUR."
                 },
                 "option_ids": {
-                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields.",
+                  "type": "array",
                   "items": {
                     "type": "integer"
                   },
-                  "type": "array"
+                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields."
                 },
                 "option_labels": {
-                  "description": "Exact option labels for single_select or multi_select fields.",
+                  "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "type": "array"
-                },
-                "value": {
-                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Exact option labels for single_select or multi_select fields."
                 }
               },
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "customer_name": {
-            "description": "Customer (company) to link the contact to.",
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "find_by_name": {
-            "description": "Search the contact by name, email, job title or company name.",
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
+              "additionalProperties": false
+            }
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
@@ -6324,28 +6835,45 @@
     },
     {
       "name": "create_lead",
-      "description": "Create a CRM lead. Leads are unqualified inbound or manually created sales records.",
+      "description": "Create a CRM lead. Leads are unqualified inbound or manually created sales records. Likely duplicates in the account are named after creation and do not block it.",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "campaign": {
-            "type": "string"
-          },
           "company_name": {
             "type": "string"
           },
           "contact_name": {
             "type": "string"
           },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "campaign": {
+            "type": "string"
+          },
+          "lead_source_id": {
+            "type": "integer"
+          },
+          "owner_id": {
+            "type": "integer",
+            "description": "Owner employee ID. Defaults to the current employee."
+          },
           "custom_fields": {
+            "type": "array",
             "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
-              "additionalProperties": false,
+              "type": "object",
               "properties": {
-                "currency_code": {
-                  "description": "Currency code for currency fields, e.g. EUR.",
-                  "type": "string"
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
                 },
                 "field_id": {
                   "type": "integer"
@@ -6353,50 +6881,33 @@
                 "field_name": {
                   "type": "string"
                 },
-                "field_uuid": {
-                  "description": "Public custom field definition UUID.",
-                  "type": "string"
+                "value": {
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                },
+                "currency_code": {
+                  "type": "string",
+                  "description": "Currency code for currency fields, e.g. EUR."
                 },
                 "option_ids": {
-                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields.",
+                  "type": "array",
                   "items": {
                     "type": "integer"
                   },
-                  "type": "array"
+                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields."
                 },
                 "option_labels": {
-                  "description": "Exact option labels for single_select or multi_select fields.",
+                  "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "type": "array"
-                },
-                "value": {
-                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Exact option labels for single_select or multi_select fields."
                 }
               },
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "email": {
-            "type": "string"
-          },
-          "lead_source_id": {
-            "type": "integer"
-          },
-          "owner_id": {
-            "description": "Owner employee ID. Defaults to the current employee.",
-            "type": "integer"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
+              "additionalProperties": false
+            }
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -6675,6 +7186,198 @@
           }
         },
         "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_opportunity_stages",
+      "description": "List CRM opportunity pipeline stages configured for the account.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_closing_factors",
+      "description": "List CRM closing factors (win/loss reasons) configured for the account.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_customer_categories",
+      "description": "List customer categories configured for the account.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_provider_categories",
+      "description": "List provider categories configured for the account.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "qualify_lead",
+      "description": "Qualify a CRM lead. Uses Lead::Qualify, which sets the qualified status, qualified_at, score, owner, and an optional note. This does not convert the lead.\nOptional owner_id must be an active employee of the account. Find the lead by lead_id.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_id": {
+            "type": "integer",
+            "description": "Lead ID."
+          },
+          "owner_id": {
+            "type": "integer",
+            "description": "Active employee ID who will own the lead."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note stored on the lead."
+          }
+        },
+        "required": [
+          "lead_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "disqualify_lead",
+      "description": "Disqualify a CRM lead. Uses Lead::Disqualify, which sets the disqualified status, the required reason, the score, and an optional note. Find the lead by lead_id.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_id": {
+            "type": "integer",
+            "description": "Lead ID."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why the lead is disqualified."
+          },
+          "note": {
+            "type": "string",
+            "description": "Optional note stored on the lead."
+          }
+        },
+        "required": [
+          "lead_id",
+          "reason"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "get_crm_dashboard",
+      "description": "Brief the CRM dashboard from Crm::Dashboard. Optional section is overview (lead inbox, action queue, recent activity), pipeline (pipeline value, forecast, funnel, top open deals, attention), performance (conversion, source conversion, activity coverage, stage aging, cycle time, forecast accuracy, win rate), or all.\nFigures come from the dashboard result. Sections the employee cannot see are skipped.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "section": {
+            "type": "string",
+            "enum": [
+              "overview",
+              "pipeline",
+              "performance",
+              "all"
+            ],
+            "description": "Which part of the dashboard to brief. Defaults to all."
+          }
+        },
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -7453,61 +8156,61 @@
     },
     {
       "name": "list_invoices",
-      "description": "List sales invoices the user can access — exactly the set they see in the web (same visibility). Filter by status, invoice type, customer name, issue-date range or catalog item.\nStatus defaults to \"draft\" when not specified. Use status \"sent\" for issued invoices, \"cancelled\" for annulled ones.\nAmounts and totals come straight from the tool — never recompute them. Use detailed format only when an invoice ID is needed for a follow-up action.\n",
+      "description": "List sales invoices the user can access — exactly the set they see in the web (same visibility). Filter by status, invoice type, customer name, issue-date range or catalog item.\nOmit status to include draft, sent, rectified and cancelled invoices. Pass status \"draft\", \"sent\", \"rectified\" or \"cancelled\" to narrow to one.\nAmounts and totals come straight from the tool — never recompute them. Use detailed format only when an invoice ID is needed for a follow-up action.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "company": {
-            "description": "Filter by customer name (partial match).",
-            "type": "string"
-          },
-          "end_date": {
-            "description": "Issue date to (YYYY-MM-DD).",
-            "type": "string"
-          },
           "id": {
-            "description": "Specific invoice ID for a single lookup.",
-            "type": "integer"
-          },
-          "item_id": {
-            "description": "Only invoices containing this catalog item.",
-            "type": "integer"
-          },
-          "response_format": {
-            "description": "concise by default; detailed includes system IDs and full breakdown.",
-            "enum": [
-              "concise",
-              "detailed"
-            ],
-            "type": "string"
-          },
-          "start_date": {
-            "description": "Issue date from (YYYY-MM-DD).",
-            "type": "string"
+            "type": "integer",
+            "description": "Specific invoice ID for a single lookup."
           },
           "status": {
-            "description": "Invoice status. Defaults to draft.",
+            "type": "string",
             "enum": [
               "draft",
               "sent",
               "rectified",
               "cancelled"
             ],
-            "type": "string"
+            "description": "Optional. Omit to include every status. Pass draft, sent, rectified or cancelled to narrow."
+          },
+          "company": {
+            "type": "string",
+            "description": "Filter by customer name (partial match)."
+          },
+          "start_date": {
+            "type": "string",
+            "description": "Issue date from (YYYY-MM-DD)."
+          },
+          "end_date": {
+            "type": "string",
+            "description": "Issue date to (YYYY-MM-DD)."
+          },
+          "item_id": {
+            "type": "integer",
+            "description": "Only invoices containing this catalog item."
           },
           "type_invoice": {
-            "description": "For sent invoices, filter by normal F1, simplified F2, rectificative (R1/R5), or all. Mirrors the web filter.",
+            "type": "string",
             "enum": [
               "all",
               "F1",
               "F2",
               "rectificative"
             ],
-            "type": "string"
+            "description": "For sent invoices, filter by normal F1, simplified F2, rectificative (R1/R5), or all. Mirrors the web filter."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs and full breakdown."
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -8310,42 +9013,95 @@
     },
     {
       "name": "list_opportunities",
-      "description": "List sales opportunities / deals (\"oportunidades\") the user can access — exactly the set they see in the web. Filter by status (open/won/lost), customer or pipeline stage.\nEach opportunity has an expected amount; use the amounts from the tool, never recompute them. Use detailed format only when an opportunity ID is needed for a follow-up action.\n",
+      "description": "List sales opportunities / deals (\"oportunidades\") the user can access — exactly the set they see in the web. Filter by status (open/won/lost), customer, pipeline stage, owner, expected close date, or rotting deals. Filters combine with AND.\nEach opportunity has an expected amount; use the amounts from the tool, never recompute them. Use detailed format only when an opportunity ID is needed for a follow-up action.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
-          "customer_name": {
-            "description": "Filter by customer name.",
-            "type": "string"
-          },
           "id": {
-            "description": "Specific opportunity ID for a single lookup.",
-            "type": "integer"
-          },
-          "response_format": {
-            "description": "concise by default; detailed includes system IDs.",
-            "enum": [
-              "concise",
-              "detailed"
-            ],
-            "type": "string"
-          },
-          "stage_name": {
-            "description": "Filter by pipeline stage name.",
-            "type": "string"
+            "type": "integer",
+            "description": "Specific opportunity ID for a single lookup."
           },
           "status": {
-            "description": "Filter by status.",
+            "type": "string",
             "enum": [
               "open",
               "won",
               "lost"
             ],
-            "type": "string"
+            "description": "Filter by status."
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Filter by customer name."
+          },
+          "stage_name": {
+            "type": "string",
+            "description": "Filter by pipeline stage name."
+          },
+          "owner_id": {
+            "type": "integer",
+            "description": "Filter by owner employee ID."
+          },
+          "owner_name": {
+            "type": "string",
+            "description": "Filter by owner employee name."
+          },
+          "mine": {
+            "type": "boolean",
+            "description": "Only deals owned by the caller."
+          },
+          "expected_close_from": {
+            "type": "string",
+            "description": "Expected close date on or after this day (YYYY-MM-DD)."
+          },
+          "expected_close_to": {
+            "type": "string",
+            "description": "Expected close date on or before this day (YYYY-MM-DD)."
+          },
+          "rotting": {
+            "type": "boolean",
+            "description": "Only deals past their stage's rotting window."
+          },
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes system IDs."
           }
         },
-        "type": "object"
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "list_opportunity_stage_logs",
+      "description": "List an opportunity's pipeline stage history: when it moved, from which stage, to which stage, who moved it, and the note. Find the deal by opportunity_id or name. Newest first.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opportunity_id": {
+            "type": "integer",
+            "description": "Opportunity ID."
+          },
+          "name": {
+            "type": "string",
+            "description": "Opportunity name to resolve."
+          },
+          "limit": {
+            "type": "integer",
+            "description": "Maximum rows. Defaults to 20, capped at 100."
+          }
+        },
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -8381,28 +9137,117 @@
     },
     {
       "name": "create_opportunity",
-      "description": "Create a sales opportunity / deal (\"oportunidad\"). An opportunity belongs to a customer and sits in a pipeline stage. It opens with status \"open\".\nResolve the customer by name or ID (required). The stage defaults to the first pipeline stage unless you name one. Give the expected amount and, optionally, the amount period (one-time/monthly/annual), expected close date and probability.\n",
+      "description": "Create a sales opportunity / deal (\"oportunidad\"). An opportunity belongs to a customer and sits in a pipeline stage. It opens with status \"open\".\nResolve the customer by name or ID (required). The stage defaults to the first pipeline stage unless you name one. Give the expected amount and, optionally, the amount period (one-time/monthly/annual), expected close date and probability.\nOptional owner_id or owner_name assigns the deal to an active employee of the account. Omit both and the caller owns it.\nOptional lines add products or services. Totals are calculated by the deal, not by this tool.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "name": {
+            "type": "string",
+            "description": "Opportunity name."
+          },
+          "customer_id": {
+            "type": "integer",
+            "description": "Customer ID."
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Customer name to resolve."
+          },
+          "stage_name": {
+            "type": "string",
+            "description": "Pipeline stage name (defaults to the first stage)."
+          },
+          "expected_amount": {
+            "type": "number",
+            "description": "Expected deal value."
+          },
           "amount_period": {
-            "description": "Recurrence of the amount. Defaults to one_time.",
+            "type": "string",
             "enum": [
               "one_time",
               "monthly",
               "annual"
             ],
+            "description": "Recurrence of the amount. Defaults to one_time."
+          },
+          "expected_close_date": {
+            "type": "string",
+            "description": "Expected close date (YYYY-MM-DD)."
+          },
+          "probability": {
+            "type": "integer",
+            "description": "Win probability 0-100 (overrides the stage default)."
+          },
+          "owner_id": {
+            "type": "integer",
+            "description": "Active employee ID who will own the deal. Defaults to the caller."
+          },
+          "owner_name": {
+            "type": "string",
+            "description": "Active employee name who will own the deal. Defaults to the caller."
+          },
+          "description": {
             "type": "string"
           },
+          "lines": {
+            "type": "array",
+            "description": "Optional deal lines. On edit, omit this to leave existing lines unchanged.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Existing line ID. Edit only."
+                },
+                "item_id": {
+                  "type": "integer",
+                  "description": "Catalog item ID in this account."
+                },
+                "item_name": {
+                  "type": "string",
+                  "description": "Catalog item name to resolve in this account."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Line name. Defaults to the item name on a new line."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "Quantity. Must be greater than 0."
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Unit price. Defaults to the item price on a new line. Must be 0 or more."
+                },
+                "tax_id": {
+                  "type": "integer",
+                  "description": "Tax ID in this account."
+                },
+                "tax_name": {
+                  "type": "string",
+                  "description": "Tax name to resolve in this account."
+                },
+                "_destroy": {
+                  "type": "boolean",
+                  "description": "Remove this line. Edit only, and requires id."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
           "custom_fields": {
+            "type": "array",
             "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
-              "additionalProperties": false,
+              "type": "object",
               "properties": {
-                "currency_code": {
-                  "description": "Currency code for currency fields, e.g. EUR.",
-                  "type": "string"
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
                 },
                 "field_id": {
                   "type": "integer"
@@ -8410,68 +9255,36 @@
                 "field_name": {
                   "type": "string"
                 },
-                "field_uuid": {
-                  "description": "Public custom field definition UUID.",
-                  "type": "string"
+                "value": {
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                },
+                "currency_code": {
+                  "type": "string",
+                  "description": "Currency code for currency fields, e.g. EUR."
                 },
                 "option_ids": {
-                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields.",
+                  "type": "array",
                   "items": {
                     "type": "integer"
                   },
-                  "type": "array"
+                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields."
                 },
                 "option_labels": {
-                  "description": "Exact option labels for single_select or multi_select fields.",
+                  "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "type": "array"
-                },
-                "value": {
-                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Exact option labels for single_select or multi_select fields."
                 }
               },
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "customer_id": {
-            "description": "Customer ID.",
-            "type": "integer"
-          },
-          "customer_name": {
-            "description": "Customer name to resolve.",
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "expected_amount": {
-            "description": "Expected deal value.",
-            "type": "number"
-          },
-          "expected_close_date": {
-            "description": "Expected close date (YYYY-MM-DD).",
-            "type": "string"
-          },
-          "name": {
-            "description": "Opportunity name.",
-            "type": "string"
-          },
-          "probability": {
-            "description": "Win probability 0-100 (overrides the stage default).",
-            "type": "integer"
-          },
-          "stage_name": {
-            "description": "Pipeline stage name (defaults to the first stage).",
-            "type": "string"
+              "additionalProperties": false
+            }
           }
         },
         "required": [
           "name"
         ],
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": false,
@@ -8482,27 +9295,119 @@
     },
     {
       "name": "edit_opportunity",
-      "description": "Edit a sales opportunity / deal: change its name, description, customer, expected amount, amount period, expected close date or probability. Find it by opportunity_id or name.\nTo MOVE it to a different pipeline stage use change_opportunity_stage; to mark it won/lost use close_opportunity; to reopen use reopen_opportunity. Those are not done here.\n",
+      "description": "Edit a sales opportunity / deal: change its name, description, customer, owner, expected amount, amount period, expected close date or probability. Find it by opportunity_id or name.\nOptional owner_id or owner_name reassigns the deal to an active employee of the account. Omit both to leave the owner.\nOptional lines add, update, or remove deal lines. Omit lines to leave existing lines unchanged. Totals are calculated by the deal, not by this tool.\nTo MOVE it to a different pipeline stage use change_opportunity_stage; to mark it won/lost use close_opportunity; to reopen use reopen_opportunity. Those are not done here.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "additionalProperties": false,
+        "type": "object",
         "properties": {
+          "opportunity_id": {
+            "type": "integer",
+            "description": "Opportunity ID."
+          },
+          "find_by_name": {
+            "type": "string",
+            "description": "Opportunity name to resolve."
+          },
+          "name": {
+            "type": "string",
+            "description": "New name."
+          },
+          "description": {
+            "type": "string"
+          },
+          "customer_id": {
+            "type": "integer",
+            "description": "Reassign to this customer ID."
+          },
+          "customer_name": {
+            "type": "string",
+            "description": "Reassign to the customer resolved from this name."
+          },
+          "expected_amount": {
+            "type": "number"
+          },
           "amount_period": {
+            "type": "string",
             "enum": [
               "one_time",
               "monthly",
               "annual"
-            ],
-            "type": "string"
+            ]
+          },
+          "expected_close_date": {
+            "type": "string",
+            "description": "YYYY-MM-DD."
+          },
+          "probability": {
+            "type": "integer",
+            "description": "Win probability 0-100."
+          },
+          "owner_id": {
+            "type": "integer",
+            "description": "Reassign to this active employee ID. Omit to leave the owner."
+          },
+          "owner_name": {
+            "type": "string",
+            "description": "Reassign to the active employee resolved from this name. Omit to leave the owner."
+          },
+          "lines": {
+            "type": "array",
+            "description": "Optional deal lines. On edit, omit this to leave existing lines unchanged.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer",
+                  "description": "Existing line ID. Edit only."
+                },
+                "item_id": {
+                  "type": "integer",
+                  "description": "Catalog item ID in this account."
+                },
+                "item_name": {
+                  "type": "string",
+                  "description": "Catalog item name to resolve in this account."
+                },
+                "name": {
+                  "type": "string",
+                  "description": "Line name. Defaults to the item name on a new line."
+                },
+                "description": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "description": "Quantity. Must be greater than 0."
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Unit price. Defaults to the item price on a new line. Must be 0 or more."
+                },
+                "tax_id": {
+                  "type": "integer",
+                  "description": "Tax ID in this account."
+                },
+                "tax_name": {
+                  "type": "string",
+                  "description": "Tax name to resolve in this account."
+                },
+                "_destroy": {
+                  "type": "boolean",
+                  "description": "Remove this line. Edit only, and requires id."
+                }
+              },
+              "additionalProperties": false
+            }
           },
           "custom_fields": {
+            "type": "array",
             "description": "CRM custom field values. Use field_uuid, field_id, or exact field_name. Scalar fields use value; datetime values use ISO 8601; select fields use option_ids or option_labels; currency uses value plus optional currency_code.",
             "items": {
-              "additionalProperties": false,
+              "type": "object",
               "properties": {
-                "currency_code": {
-                  "description": "Currency code for currency fields, e.g. EUR.",
-                  "type": "string"
+                "field_uuid": {
+                  "type": "string",
+                  "description": "Public custom field definition UUID."
                 },
                 "field_id": {
                   "type": "integer"
@@ -8510,71 +9415,111 @@
                 "field_name": {
                   "type": "string"
                 },
-                "field_uuid": {
-                  "description": "Public custom field definition UUID.",
-                  "type": "string"
+                "value": {
+                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                },
+                "currency_code": {
+                  "type": "string",
+                  "description": "Currency code for currency fields, e.g. EUR."
                 },
                 "option_ids": {
-                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields.",
+                  "type": "array",
                   "items": {
                     "type": "integer"
                   },
-                  "type": "array"
+                  "description": "Option IDs for single_select or multi_select fields. Use an empty array to clear optional selector fields."
                 },
                 "option_labels": {
-                  "description": "Exact option labels for single_select or multi_select fields.",
+                  "type": "array",
                   "items": {
                     "type": "string"
                   },
-                  "type": "array"
-                },
-                "value": {
-                  "description": "Value for boolean, date, time, datetime, string, text, number, or currency fields. Use an empty string or null to clear optional scalar fields."
+                  "description": "Exact option labels for single_select or multi_select fields."
                 }
               },
-              "type": "object"
-            },
-            "type": "array"
-          },
-          "customer_id": {
-            "description": "Reassign to this customer ID.",
-            "type": "integer"
-          },
-          "customer_name": {
-            "description": "Reassign to the customer resolved from this name.",
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "expected_amount": {
-            "type": "number"
-          },
-          "expected_close_date": {
-            "description": "YYYY-MM-DD.",
-            "type": "string"
-          },
-          "find_by_name": {
-            "description": "Opportunity name to resolve.",
-            "type": "string"
-          },
-          "name": {
-            "description": "New name.",
-            "type": "string"
-          },
-          "opportunity_id": {
-            "description": "Opportunity ID.",
-            "type": "integer"
-          },
-          "probability": {
-            "description": "Win probability 0-100.",
-            "type": "integer"
+              "additionalProperties": false
+            }
           }
         },
-        "type": "object"
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "list_crm_comments",
+      "description": "List the newest approved top-level comments on a CRM record. target_type is customer, lead, opportunity, or assignment, plus target_id.\nReplies, unapproved comments, reactions, and attachments are not included. A customer comment is stored on the company, because customers are companies.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "lead",
+              "opportunity",
+              "assignment"
+            ],
+            "description": "Record the comments belong to."
+          },
+          "target_id": {
+            "type": "integer",
+            "description": "ID of that record."
+          }
+        },
+        "required": [
+          "target_type",
+          "target_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_crm_comment",
+      "description": "Add an approved comment to a CRM record. target_type is customer, lead, opportunity, or assignment, plus target_id. Body is required.\nThe comment is created immediately. Replies, reactions, and attachments are not supported. A customer comment is stored on the company, because customers are companies.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "enum": [
+              "customer",
+              "lead",
+              "opportunity",
+              "assignment"
+            ],
+            "description": "Record to comment on."
+          },
+          "target_id": {
+            "type": "integer",
+            "description": "ID of that record."
+          },
+          "body": {
+            "type": "string",
+            "description": "Comment text."
+          }
+        },
+        "required": [
+          "target_type",
+          "target_id",
+          "body"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": false
@@ -8697,6 +9642,1343 @@
           "note"
         ],
         "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "convert_opportunity_to_invoice",
+      "description": "Create a draft invoice from a won opportunity after showing a preview. Uses Opportunities::ToInvoice, the same operation as the web. The invoice is not created until the preview is confirmed.\nRequires invoice CRUD and CRM read, and the account must have invoicing enabled.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opportunity_id": {
+            "type": "integer",
+            "description": "Opportunity ID."
+          }
+        },
+        "required": [
+          "opportunity_id"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_opportunity_stage",
+      "description": "Create a CRM opportunity stage. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "probability": {
+            "type": "integer"
+          },
+          "rotting_days": {
+            "type": "integer"
+          },
+          "position": {
+            "type": "integer",
+            "description": "1-based position in this account's list."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_opportunity_stage",
+      "description": "Edit a CRM opportunity stage found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opportunity_stage_id": {
+            "type": "integer",
+            "description": "Opportunity stage id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "probability": {
+            "type": "integer"
+          },
+          "rotting_days": {
+            "type": "integer"
+          },
+          "position": {
+            "type": "integer",
+            "description": "1-based position in this account's list."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_opportunity_stage",
+      "description": "Delete a CRM opportunity stage found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "opportunity_stage_id": {
+            "type": "integer",
+            "description": "Opportunity stage id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_customer_stage_category",
+      "description": "Create a CRM customer stage. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "position": {
+            "type": "integer",
+            "description": "1-based position in this account's list."
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_customer_stage_category",
+      "description": "Edit a CRM customer stage found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "customer_stage_category_id": {
+            "type": "integer",
+            "description": "Customer stage id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "position": {
+            "type": "integer",
+            "description": "1-based position in this account's list."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_customer_stage_category",
+      "description": "Delete a CRM customer stage found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "customer_stage_category_id": {
+            "type": "integer",
+            "description": "Customer stage id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_customer_category",
+      "description": "Create a CRM customer category. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_customer_category",
+      "description": "Edit a CRM customer category found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "customer_category_id": {
+            "type": "integer",
+            "description": "Customer category id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_customer_category",
+      "description": "Delete a CRM customer category found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "customer_category_id": {
+            "type": "integer",
+            "description": "Customer category id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_provider_category",
+      "description": "Create a CRM provider category. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_provider_category",
+      "description": "Edit a CRM provider category found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "provider_category_id": {
+            "type": "integer",
+            "description": "Provider category id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_provider_category",
+      "description": "Delete a CRM provider category found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "provider_category_id": {
+            "type": "integer",
+            "description": "Provider category id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_lead_source",
+      "description": "Create a CRM lead source. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "position": {
+            "type": "integer",
+            "description": "Sort position."
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_lead_source",
+      "description": "Edit a CRM lead source found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_source_id": {
+            "type": "integer",
+            "description": "Lead source id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          },
+          "position": {
+            "type": "integer",
+            "description": "Sort position."
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_lead_source",
+      "description": "Delete a CRM lead source found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "lead_source_id": {
+            "type": "integer",
+            "description": "Lead source id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_assignment_category",
+      "description": "Create a CRM assignment category. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_assignment_category",
+      "description": "Edit a CRM assignment category found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "assignment_category_id": {
+            "type": "integer",
+            "description": "Assignment category id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_assignment_category",
+      "description": "Delete a CRM assignment category found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "assignment_category_id": {
+            "type": "integer",
+            "description": "Assignment category id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "create_closing_factor",
+      "description": "Create a CRM closing factor. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_closing_factor",
+      "description": "Edit a CRM closing factor found by id or exact current name. Saved immediately. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "closing_factor_id": {
+            "type": "integer",
+            "description": "Closing factor id."
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "colour": {
+            "type": "string",
+            "enum": [
+              "red",
+              "green",
+              "yellow",
+              "blue",
+              "indigo",
+              "purple",
+              "pink",
+              "orange",
+              "teal",
+              "cyan",
+              "gray",
+              "black",
+              "amber",
+              "lime",
+              "emerald",
+              "rose",
+              "sky",
+              "violet",
+              "fuchsia",
+              "slate"
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_closing_factor",
+      "description": "Delete a CRM closing factor found by id or exact name, after a preview. It is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "closing_factor_id": {
+            "type": "integer",
+            "description": "Closing factor id."
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "list_crm_automation_rules",
+      "description": "List CRM automation rules with name, trigger, active flag, and a one-line action summary. Detailed format includes the id. Read-only. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "response_format": {
+            "type": "string",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "description": "concise by default; detailed includes the rule id."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "get_crm_automation_rule",
+      "description": "Show one CRM automation rule by id or exact name, including conditions, actions, the active flag, and the 10 most recent runs. Read-only. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "crm_automation_rule_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact rule name in this account."
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_crm_automation_rule",
+      "description": "Create a CRM automation rule after showing a preview. The rule is not saved until the preview is confirmed.\nConditions are { key, value } pairs the trigger allows. Actions are objects whose keys come from that action type.\nThe owner defaults to the caller and must be an employee of the account. Requires Settings CRUD permission.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "lead_created",
+              "lead_qualified",
+              "opportunity_stage_changed",
+              "opportunity_inactive",
+              "opportunity_marked_won",
+              "opportunity_marked_lost",
+              "invoice_created_from_opportunity",
+              "contact_ticket_created"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "employee_id": {
+            "type": "integer",
+            "description": "Owner. Defaults to the caller and must belong to this account."
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                }
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "create_assignment",
+                    "send_in_app_notification",
+                    "assign_owner",
+                    "update_lead_status",
+                    "update_customer_stage",
+                    "add_source_campaign_marker",
+                    "create_project_task"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "employee_id": {
+                  "type": "integer"
+                },
+                "due_in_days": {
+                  "type": "integer"
+                },
+                "activity_type": {
+                  "type": "string"
+                },
+                "activity_channel": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "assignment_category_id": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "customer_stage_category_id": {
+                  "type": "integer"
+                },
+                "lead_source_id": {
+                  "type": "integer"
+                },
+                "campaign": {
+                  "type": "string"
+                },
+                "project_name": {
+                  "type": "string"
+                },
+                "task_name": {
+                  "type": "string"
+                },
+                "task_category_id": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "name",
+          "trigger",
+          "actions"
+        ],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_crm_automation_rule",
+      "description": "Edit a CRM automation rule found by id or exact current name, after showing a preview. The rule is not saved until the preview is confirmed.\nOmitted conditions and actions keep the current ones. The owner must be an employee of the account. Requires Settings CRUD permission.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "crm_automation_rule_id": {
+            "type": "integer"
+          },
+          "current_name": {
+            "type": "string",
+            "description": "Exact current name in this account. Use this or the id."
+          },
+          "name": {
+            "type": "string"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "lead_created",
+              "lead_qualified",
+              "opportunity_stage_changed",
+              "opportunity_inactive",
+              "opportunity_marked_won",
+              "opportunity_marked_lost",
+              "invoice_created_from_opportunity",
+              "contact_ticket_created"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "employee_id": {
+            "type": "integer",
+            "description": "Owner. Must belong to this account."
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "integer"
+                  ]
+                }
+              },
+              "required": [
+                "key",
+                "value"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "create_assignment",
+                    "send_in_app_notification",
+                    "assign_owner",
+                    "update_lead_status",
+                    "update_customer_stage",
+                    "add_source_campaign_marker",
+                    "create_project_task"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "employee_id": {
+                  "type": "integer"
+                },
+                "due_in_days": {
+                  "type": "integer"
+                },
+                "activity_type": {
+                  "type": "string"
+                },
+                "activity_channel": {
+                  "type": "string"
+                },
+                "target": {
+                  "type": "string"
+                },
+                "assignment_category_id": {
+                  "type": "integer"
+                },
+                "description": {
+                  "type": "string"
+                },
+                "link": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "customer_stage_category_id": {
+                  "type": "integer"
+                },
+                "lead_source_id": {
+                  "type": "integer"
+                },
+                "campaign": {
+                  "type": "string"
+                },
+                "project_name": {
+                  "type": "string"
+                },
+                "task_name": {
+                  "type": "string"
+                },
+                "task_category_id": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_crm_automation_rule",
+      "description": "Delete a CRM automation rule found by id or exact name, after a preview. The rule is not deleted until the preview is confirmed. Requires Settings CRUD permission.",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "crm_automation_rule_id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string",
+            "description": "Exact rule name in this account."
+          }
+        },
+        "additionalProperties": false
       },
       "annotations": {
         "destructiveHint": true,
