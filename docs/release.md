@@ -22,7 +22,7 @@ See also [Release gates](release-gates.md), [Staging contracts](staging-contract
 
 ## 2. One-time GitHub setup
 
-### Package-index repos and tap tokens
+### Package-index repos
 
 ```bash
 gh repo create talentohq/homebrew-tap --public --description "Homebrew tap for the Talento CLI" --gitignore ""
@@ -45,16 +45,34 @@ git -C /tmp/scoop-bucket push -u origin HEAD:main
 gh repo edit talentohq/scoop-bucket --default-branch main
 ```
 
-Create a fine-grained PAT (or GitHub App) with Contents read/write on `talentohq/homebrew-tap` and
-`talentohq/scoop-bucket` only. Store it in a password manager. Then:
+### Homebrew deploy key
+
+`publish-homebrew` clones the public tap without a token and pushes with a write deploy key on
+`talentohq/homebrew-tap` only. Do not create `HOMEBREW_TAP_TOKEN`.
 
 ```bash
-printf '%s' "$HOMEBREW_TAP_TOKEN" | gh secret set HOMEBREW_TAP_TOKEN -R talentohq/talento-cli
-printf '%s' "$SCOOP_BUCKET_TOKEN" | gh secret set SCOOP_BUCKET_TOKEN -R talentohq/talento-cli
+ssh-keygen -t ed25519 -f "$HOME/talento-homebrew-tap" -N "" -C "talento-cli-release"
+gh api --method POST repos/talentohq/homebrew-tap/keys \
+  -f title='talento-cli-release' \
+  -f key="$(cat "$HOME/talento-homebrew-tap.pub")" \
+  -F read_only=false
+gh secret set HOMEBREW_TAP_DEPLOY_KEY -R talentohq/talento-cli < "$HOME/talento-homebrew-tap"
+rm -P "$HOME/talento-homebrew-tap" "$HOME/talento-homebrew-tap.pub"
 ```
+
+Copy the private key into the password manager before deleting the local file.
 
 The release workflow committer identity is already `talentohq-release-bot` / `releases@talentohq.com`;
 that is git config only and does not need a matching GitHub user.
+
+### Scoop bucket token
+
+Scoop publication is not part of `release.yml`. If you add it later, create a fine-grained PAT with
+Contents read/write on `talentohq/scoop-bucket` only, store it in a password manager, then:
+
+```bash
+printf '%s' "$SCOOP_BUCKET_TOKEN" | gh secret set SCOOP_BUCKET_TOKEN -R talentohq/talento-cli
+```
 
 ### Actions environments
 
@@ -339,7 +357,8 @@ Never commit any of the following to this repository (or to the tap/bucket repos
 - Staging evidence JSON reports (`report.json`) if you produce one later, their base64 encodings,
   or the encoder's `$TMPDIR` upload file
 - Staging access tokens, refresh tokens, customer data, or production IDs
-- Fine-grained PATs used as `HOMEBREW_TAP_TOKEN`
+- The Homebrew deploy key (`HOMEBREW_TAP_DEPLOY_KEY`). Do not recreate `HOMEBREW_TAP_TOKEN`.
+- Fine-grained PATs used as `SCOOP_BUCKET_TOKEN`
 
 Keep live evidence and signing materials in the password manager and in the protected
 `stable-release-gates` (and `preview-release` where applicable) GitHub environment only.
