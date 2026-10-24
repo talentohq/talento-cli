@@ -114,10 +114,13 @@ signs:
 homebrew_casks:
   - name: talento
     ids: [archives]
+    # publish-homebrew pushes the cask with HOMEBREW_TAP_DEPLOY_KEY.
+    # Release jobs pass --skip=publish; this also keeps a local GoReleaser run
+    # from trying to commit the tap.
+    skip_upload: true
     repository:
       owner: talentohq
       name: homebrew-tap
-      token: '{{ .Env.HOMEBREW_TAP_TOKEN }}'
     directory: Casks
     homepage: https://talentohq.com
     description: Native command-line client for TalentoHQ
