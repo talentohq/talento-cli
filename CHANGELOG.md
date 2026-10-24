@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `talento absences create` and `talento absences update` accept `--open-ended` for a category
+  that allows a blank return date. Omitting the end date still files a single day. On update,
+  `--end-on` closes an open absence.
+
+### Changed
+
+- `talento appointments manage` accepts `delete` for an appointment that is already cancelled.
+  Delete does not email the guest and still returns a preview.
+- `talento trainings create` and `talento trainings update` treat `--external-url` as optional.
+  An empty URL on update clears it. `--external` means an external company delivers the course
+  or it is hosted elsewhere, with no in-app lessons.
+
 ## [1.0.8] - 2026-10-03
 
 ### Added

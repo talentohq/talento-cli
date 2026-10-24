@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "48203d417615c109834c68545c4913f81241a42d4d6dc10514015b5b2d8db69b",
+  "snapshot_sha256": "f404f5ff62ee8ac140ec11629640ee55518d9462a65846904f77eee11df27561",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {

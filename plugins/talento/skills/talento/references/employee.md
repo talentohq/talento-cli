@@ -20,6 +20,8 @@ subset, and the live result decides the boundary.
   the request was filed and its returned approval state.
 - Preserve separate dates and partial-day hours exactly; do not collapse non-contiguous dates into a
   range.
+- Omitting the end date files a single day. An open absence uses `--open-ended` only when the
+  category listing says the return date can be blank. Do not combine that with a list of separate dates.
 
 ## Tasks, todos, goals, and learning
 

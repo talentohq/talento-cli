@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-10-03T12:00:00Z",
+  "generated_at": "2026-10-24T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -968,7 +968,7 @@
     },
     {
       "name": "create_absence",
-      "description": "Create one or more absence requests. Executes immediately — there is NO preview/confirm step.\n\nTarget employee (managers only): to create for another person, pass 'employee_name' (preferred)\nor 'employee_id'. Omit both to create for the current user. Never ask the user for an ID —\nresolve the name here. If the name is ambiguous the tool returns the options so you can ask which\none and call again with a more specific name.\n\nCategory: pass 'absence_category_name' (partial match) — never ask for an ID. Resolve it with\nlist_absence_categories when unsure.\n\nDates: for a single day or a contiguous run, pass 'start_on'/'end_on'. For SEVERAL separate days\n(e.g. \"1 hour on the 13th, 14th, 15th and 16th\"), pass 'dates' (a list of YYYY-MM-DD) — one\nabsence is created per day, which keeps a partial-hour absence counted per day. Do NOT collapse\nseparate days into a single start_on..end_on range: a range charges the days in between in full.\n\nHours: for a partial-day absence pass 'start_hour' and 'end_hour' (HH:MM); 'all_day' is then\ntreated as false automatically. Otherwise the absence is all-day.\n\nAttachments: if the user attached a supporting document in the chat (e.g. a medical note),\npass its ref in 'attachment_refs' to file it with the absence. With several days, the\ndocument is filed with every absence created.\n",
+      "description": "Create one or more absence requests. Executes immediately — there is NO preview/confirm step.\n\nTarget employee (managers only): to create for another person, pass 'employee_name' (preferred)\nor 'employee_id'. Omit both to create for the current user. Never ask the user for an ID —\nresolve the name here. If the name is ambiguous the tool returns the options so you can ask which\none and call again with a more specific name.\n\nCategory: pass 'absence_category_name' (partial match) — never ask for an ID. Resolve it with\nlist_absence_categories when unsure.\n\nDates: for a single day or a contiguous run, pass 'start_on'/'end_on'. For SEVERAL separate days\n(e.g. \"1 hour on the 13th, 14th, 15th and 16th\"), pass 'dates' (a list of YYYY-MM-DD) — one\nabsence is created per day, which keeps a partial-hour absence counted per day. Do NOT collapse\nseparate days into a single start_on..end_on range: a range charges the days in between in full.\n\nHours: for a partial-day absence pass 'start_hour' and 'end_hour' (HH:MM); 'all_day' is then\ntreated as false automatically. Otherwise the absence is all-day.\n\nOpen-ended: omit end_on and the absence is a single day. Pass open_ended true only when the\ncategory allows a blank return date (sick leave). That stores no end date and the absence\nstays active until an end date is set later.\n\nAttachments: if the user attached a supporting document in the chat (e.g. a medical note),\npass its ref in 'attachment_refs' to file it with the absence. With several days, the\ndocument is filed with every absence created.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "properties": {
@@ -1021,9 +1021,13 @@
             "type": "string"
           },
           "end_on": {
-            "description": "End date (YYYY-MM-DD). Optional — defaults to start_on for a single-day absence. Ignored when 'dates' is given.",
+            "description": "End date (YYYY-MM-DD). Optional — defaults to start_on for a single-day absence. Ignored when 'dates' is given. Do not omit this to leave the absence open; pass open_ended instead.",
             "format": "date",
             "type": "string"
+          },
+          "open_ended": {
+            "description": "Store no end date. Only for a category that allows a blank return date, such as sick leave. The absence stays active until an end date is entered. Cannot be combined with dates.",
+            "type": "boolean"
           },
           "start_hour": {
             "description": "Start time in HH:MM format (for a partial-day absence)",
@@ -2479,9 +2483,13 @@
             "type": "string"
           },
           "end_on": {
-            "description": "End date of the absence in YYYY-MM-DD format",
+            "description": "End date of the absence in YYYY-MM-DD format. Pass this to close an open absence.",
             "format": "date",
             "type": "string"
+          },
+          "open_ended": {
+            "description": "Clear the end date so the absence stays active. Only when the category allows a blank return date. Ignored when end_on is also passed.",
+            "type": "boolean"
           },
           "find_by_date": {
             "description": "A day the absence covers (YYYY-MM-DD). Preferred way to identify the absence.",
@@ -2953,17 +2961,18 @@
     },
     {
       "name": "manage_appointment",
-      "description": "Decide on an existing appointment: approve, decline or cancel it. Every decision\nemails the guest, so this returns a preview first and applies nothing until you\nconfirm it. Only call it once the user has clearly asked to act on a specific\nappointment. If they are still choosing which one, or only asking about it,\ndon't act yet: identify the appointment and the intended action first.\n\nWhich actions are possible depends on the appointment's current state, so read\nit (or list appointments) when unsure:\n- approve turns a pending (or previously cancelled) appointment into confirmed.\n- decline rejects an appointment that is still pending.\n- cancel calls off a confirmed or pending appointment, freeing the slot.\nIf the requested action doesn't fit the current state, the tool explains why\ninstead of acting.\n\nIdentify the appointment by calendar name + guest name (optionally a date), or\nby an internal id from a previous detailed listing. When approving or declining,\nan optional message can be sent to the guest along with the decision;\ncancellations send a standard notice and cannot carry a message.\n",
+      "description": "Decide on an existing appointment: approve, decline, cancel, or delete it.\nApprove, decline, and cancel email the guest, so this returns a preview first\nand applies nothing until you confirm it. Delete does not email anyone: it\npermanently removes an appointment that is already cancelled, along with its\ninternal booking. Only call it once the user has clearly asked to act on a\nspecific appointment. If they are still choosing which one, or only asking\nabout it, don't act yet: identify the appointment and the intended action first.\n\nWhich actions are possible depends on the appointment's current state, so read\nit (or list appointments) when unsure:\n- approve turns a pending (or previously cancelled) appointment into confirmed.\n- decline rejects an appointment that is still pending.\n- cancel calls off a confirmed or pending appointment, freeing the slot.\n- delete removes a cancelled appointment and its internal booking. It does not\n  email the guest.\nIf the requested action doesn't fit the current state, the tool explains why\ninstead of acting.\n\nIdentify the appointment by calendar name + guest name (optionally a date), or\nby an internal id from a previous detailed listing. When approving or declining,\nan optional message can be sent to the guest along with the decision;\ncancellations send a standard notice and cannot carry a message. Delete ignores\nany message.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
           "action": {
-            "description": "The decision to apply. 'approve' confirms a pending/cancelled appointment; 'decline' rejects a pending one; 'cancel' calls off a confirmed/pending one.",
+            "description": "The decision to apply. 'approve' confirms a pending/cancelled appointment; 'decline' rejects a pending one; 'cancel' calls off a confirmed/pending one; 'delete' permanently removes a cancelled appointment and its internal booking without emailing the guest.",
             "enum": [
               "approve",
               "decline",
-              "cancel"
+              "cancel",
+              "delete"
             ],
             "type": "string"
           },
@@ -2976,7 +2985,7 @@
             "type": "string"
           },
           "client_message": {
-            "description": "Optional message shared with the guest when approving or declining. Ignored on cancel — the guest receives a standard cancellation notice.",
+            "description": "Optional message shared with the guest when approving or declining. Ignored on cancel — the guest receives a standard cancellation notice. Ignored on delete — the guest is not emailed.",
             "type": "string"
           },
           "date": {
@@ -3160,11 +3169,11 @@
             "type": "string"
           },
           "external": {
-            "description": "When true, the course is hosted on another platform; employees open external_url instead of in-app lessons.",
+            "description": "When true, an external company delivers the course or it is hosted on another platform. There are no in-app lessons. Employees open external_url when it is set.",
             "type": "boolean"
           },
           "external_url": {
-            "description": "https URL of the external course. Required when external is true.",
+            "description": "Optional https URL of the external course. Employees open it instead of in-app lessons when it is set.",
             "type": "string"
           },
           "name": {
@@ -3230,11 +3239,11 @@
             "type": "string"
           },
           "external": {
-            "description": "When true, the course is hosted on another platform; employees open external_url instead of in-app lessons.",
+            "description": "When true, an external company delivers the course or it is hosted on another platform. There are no in-app lessons. Employees open external_url when it is set.",
             "type": "boolean"
           },
           "external_url": {
-            "description": "https URL of the external course. Required when external is true.",
+            "description": "Optional https URL of the external course. Employees open it instead of in-app lessons when it is set. Pass an empty string to clear it.",
             "type": "string"
           },
           "name": {

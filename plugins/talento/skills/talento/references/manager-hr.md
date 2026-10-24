@@ -10,6 +10,11 @@ admin-wide access; inspect the live catalogue and the applied scope.
   decides; do not memorize a universal confirmation rule.
 - A successful absence, reschedule, booking, or other request may still be pending approval. Preserve
   its lifecycle state.
+- Omitting an absence end date files a single day. `--open-ended` leaves the return date blank, and
+  only when that category's listing says it can. Pass `--end-on` to close an open absence; that wins
+  over `--open-ended`.
+- `talento appointments manage` can approve, decline, cancel, or delete. Delete applies only to an
+  appointment that is already cancelled, does not email the guest, and still returns a preview.
 - The schedule catalog and a person's assignment are different writes. List the catalog before naming
   a category, weekly pattern, or rotating shift.
 - `talento schedules category-create`, `category-update`, `pattern-create`, `pattern-update`,
@@ -49,8 +54,9 @@ admin-wide access; inspect the live catalogue and the applied scope.
   review submission. Returning a published course to draft is a lifecycle write, not a delete.
 - Training skill links accept a proficiency (`basic`, `intermediate`, `advanced`, `expert`) via
   `--skills` JSON. `--skill-ids` still works but new links have no level; prefer `--skills`.
-- A course with `--external` is hosted on another platform and needs `--external-url`. Those
-  courses do not take in-app topics.
+- A course with `--external` is delivered by an external company or hosted on another platform.
+  It has no in-app lessons. `--external-url` is optional; employees open it when it is set. On
+  update, an empty URL clears it.
 - Meeting question templates are reusable 1:1 and hiring-interview prompts, not surveys. List them
   before creating a duplicate set. Deleting a template fails while it still has questions.
 - Onboarding actions that require approval are not complete merely because an update request persisted.
