@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `talento people create` adds an employee. Name is required, plus an email or a username and
+  password. Office, team, manager, start date, national id, and company code are optional.
+  The command returns a preview. Contract type, working category, and job are the company's
+  defaults. It does not assign a permission group or a work schedule.
+
 ## [1.0.9] - 2026-10-24
 
 ### Added

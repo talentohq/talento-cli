@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-10-24T12:00:00Z",
+  "generated_at": "2026-10-30T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -5590,6 +5590,75 @@
         "idempotentHint": false,
         "openWorldHint": false,
         "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_employee",
+      "description": "Add a person to the company. Use this when the user asks to create, hire, or register an\nemployee, including when list_employees found nobody with that name. A missing person is the\nreason to call this, not a reason to stop.\n\nThe caller needs permission to manage employees. Shows a preview; nothing is saved until\nconfirm_action.\n\nPass name, and either email or username plus password. Do not invent an email or a password:\nif the user gave neither, ask before calling. Pass office_name and team_name when you know\nthem. Pass manager_name for the direct manager, started_on (YYYY-MM-DD) for the contract\nstart, id_code for the NIF or DNI, and custom_code for the company code (código de empresa).\n\n\"Default\" or \"basic\" permissions means leave permissions alone. This tool does not assign a\npermission group; the company defaults apply, the same as the new-employee form. It also does\nnot assign a work schedule. After the person exists, use assign_schedule.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "create_onboarding": {
+            "description": "Start the onboarding process. Leave false unless the user asked for it.",
+            "type": "boolean"
+          },
+          "custom_code": {
+            "description": "Company code (código de empresa).",
+            "type": "string"
+          },
+          "email": {
+            "description": "Sign-in email. Use this or username, not both. Do not invent one.",
+            "type": "string"
+          },
+          "id_code": {
+            "description": "National id, such as NIF or DNI.",
+            "type": "string"
+          },
+          "manager_name": {
+            "description": "Direct manager (partial match).",
+            "type": "string"
+          },
+          "name": {
+            "description": "Full name of the new person.",
+            "type": "string"
+          },
+          "notify_email": {
+            "description": "Send the welcome email. Leave false unless the user asked to notify the person.",
+            "type": "boolean"
+          },
+          "office_name": {
+            "description": "Office (partial match). Omit only when you do not know it.",
+            "type": "string"
+          },
+          "password": {
+            "description": "Password for a username login. Required with username. Do not invent one.",
+            "type": "string"
+          },
+          "started_on": {
+            "description": "Contract start date (YYYY-MM-DD). Omit for today. A future date makes the person onboarding.",
+            "format": "date",
+            "type": "string"
+          },
+          "team_name": {
+            "description": "Team (partial match). Omit only when you do not know it.",
+            "type": "string"
+          },
+          "username": {
+            "description": "Sign-in username when the person has no email. Requires password.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
       }
     },
     {

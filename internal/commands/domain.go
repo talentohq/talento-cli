@@ -81,7 +81,8 @@ func executeValidatedTool(
 
 var domainExamples = map[string]string{
 	"people": `  talento people list --name Ana
-  talento people get --employee-id 42 --json`,
+  talento people get --employee-id 42 --json
+  talento people create --name "Ana López" --email ana@example.com --office-name Madrid --team-name Engineering`,
 	"time": `  talento time now
   talento time list-clock-ins --start-date 2026-09-01 --end-date 2026-09-07`,
 	"absences": `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30
@@ -98,6 +99,7 @@ var domainExamples = map[string]string{
 var toolExamples = map[string]string{
 	"list_employees": `  talento people list --name Ana
   talento people list --team-id 12 --json`,
+	"create_employee":         `  talento people create --name "Ana López" --email ana@example.com --office-name Madrid --team-name Engineering`,
 	"get_current_datetime":    `  talento time now --agent`,
 	"list_goal_actions":       `  talento goals list-actions --goal-name "Increase retention"`,
 	"create_goal_action":      `  talento goals create-action --name "Draft survey" --goal-name "Increase retention"`,

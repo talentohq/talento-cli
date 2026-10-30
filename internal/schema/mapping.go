@@ -119,6 +119,7 @@ var commandOverrides = map[string]string{
 	"delete_goal_action":                   "delete-action",
 	"list_employees":                       "list",
 	"get_employee":                         "get",
+	"create_employee":                      "create",
 	"list_absence_categories":              "categories",
 	"list_absences":                        "list",
 	"create_absence":                       "create",

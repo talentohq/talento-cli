@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "f404f5ff62ee8ac140ec11629640ee55518d9462a65846904f77eee11df27561",
+  "snapshot_sha256": "757b3c524e4fefce4e5e3fb236b6f4fe7f2c18761aabb3fd6202cbeecd82d3df",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -693,6 +693,12 @@
       "domain": "people",
       "command": "get",
       "read_only": true
+    },
+    {
+      "tool": "create_employee",
+      "domain": "people",
+      "command": "create",
+      "read_only": false
     },
     {
       "tool": "create_task",

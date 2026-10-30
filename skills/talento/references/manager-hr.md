@@ -6,6 +6,10 @@ admin-wide access; inspect the live catalogue and the applied scope.
 ## People and schedules
 
 - Resolve employees by name and verify the returned employee before acting on another person.
+- `talento people create` adds a person. Use it when the user asks to add, hire, or register someone, including when `people list` finds nobody. It always returns a preview. Nothing is saved until `talento action confirm`.
+- Ask for an email, or a username and a password. Do not invent either. Pass office, team, manager, start date, NIF or DNI (`--id-code`), and company code (`--custom-code`) when the user gave them. If office or team is omitted and the company has several, the server lists them and creates nothing.
+- Read the preview's contract, working category, and job before confirming. Those are the company's defaults. This command cannot set them, a permission group, or a work schedule. "Default" or "basic" permissions means leave that alone.
+- `--notify-email` and `--create-onboarding` only when the user asked. A future start date is reported as onboarding. A named work schedule is a later `talento schedules assign`, after the person exists. Do not claim the person was added from the preview alone.
 - Scheduling, swaps, assignments, and bulk clock-in generation often return previews. The live state
   decides; do not memorize a universal confirmation rule.
 - A successful absence, reschedule, booking, or other request may still be pending approval. Preserve
