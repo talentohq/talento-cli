@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-10-30T12:00:00Z",
+  "generated_at": "2026-11-03T12:00:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -722,17 +722,17 @@
     },
     {
       "name": "list_goals",
-      "description": "List goals. Default scope is 'mine' (current user's own goals).\nUse scope='team' for team goals. Use scope='office' for office-wide.\nUse scope='all' for all accessible goals.\nOptionally filter by date range using start_date and end_date (YYYY-MM-DD).\nIf no dates provided, returns all goals regardless of date.\nFor \"this quarter\", \"past goals\", or any range anchored to now, call get_current_datetime\nfirst, then pass start_date and end_date as YYYY-MM-DD. Do not invent dates.\nFilter by status (array: planning, active, achieved, missed, discarded),\nname (partial match). Use for entity resolution before editing.\nUse employee_name to look up goals for a specific employee by name.\n",
+      "description": "List goals. Default scope is 'mine' (goals the current user is responsible for).\nUse scope='team' for team goals. Use scope='office' for office-wide.\nUse scope='all' for all accessible goals.\nA goal the caller created for someone else is not in 'mine'; use scope='all' or employee_name.\nOptionally filter by date range using start_date and end_date (YYYY-MM-DD).\nIf no dates provided, returns all goals regardless of date.\nFor \"this quarter\", \"past goals\", or any range anchored to now, call get_current_datetime\nfirst, then pass start_date and end_date as YYYY-MM-DD. Do not invent dates.\nFilter by status (array: planning, active, achieved, missed, discarded),\nname (partial match). Use for entity resolution before editing.\nUse employee_name to look up goals a specific person is responsible for.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
         "properties": {
           "employee_id": {
-            "description": "Filter by specific employee ID. Use when you already have the ID from a previous tool call.",
+            "description": "Filter by the responsible person's employee ID. Use when you already have the ID from a previous tool call.",
             "type": "integer"
           },
           "employee_name": {
-            "description": "Filter by employee name (partial match). Use when asking about a specific employee's goals. Resolves the employee first, then filters.",
+            "description": "Filter by the responsible person's name (partial match). Use when asking about a specific person's goals. Resolves the employee first, then filters.",
             "type": "string"
           },
           "end_date": {
@@ -749,7 +749,7 @@
             "type": "string"
           },
           "response_format": {
-            "description": "Response format. 'concise' (default) gives the name, status, progress and end date. It names the owner only when listing someone else's goals (scope is not mine). 'detailed' adds description, target, start date, owner, metrics and a system id.",
+            "description": "Response format. 'concise' (default) gives the name, status, progress and end date. It names the responsible only when listing someone else's goals (scope is not mine). 'detailed' adds description, target, start date, creator, responsible, metrics and a system id.",
             "enum": [
               "concise",
               "detailed"
@@ -757,7 +757,7 @@
             "type": "string"
           },
           "scope": {
-            "description": "Data scope. 'mine' = current user's own data (default). 'team' = current user's team. 'office' = current user's office. 'all' = all data the user has access to. When the user says 'my goals' use 'mine'. When they say 'team goals' use 'team'. When ambiguous or asking in plural without specifying, use 'all'.",
+            "description": "Data scope. 'mine' = goals the current user is responsible for (default). 'team' = current user's team. 'office' = current user's office. 'all' = all data the user has access to. When the user says 'my goals' use 'mine'. When they say 'team goals' use 'team'. When ambiguous or asking in plural without specifying, use 'all'.",
             "enum": [
               "mine",
               "team",
@@ -1231,7 +1231,7 @@
     },
     {
       "name": "create_goal",
-      "description": "Create a new goal. Only the name is required — all other fields have defaults.\nReturns the created goal details. Defaults: status = planning, start_on = today.\nSupports metrics as array of {name, value} objects.\n",
+      "description": "Create a new goal. Only the name is required — all other fields have defaults.\nThe caller is the creator, and is also the responsible person unless responsible_name is set.\nAdmins can assign any active employee who is not external. Other people can assign themselves\nand employees they manage for goals.\nReturns the created goal details. Defaults: status = planning, start_on = today.\nSupports metrics as array of {name, value} objects.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1269,6 +1269,14 @@
           },
           "name": {
             "description": "Goal name (required)",
+            "type": "string"
+          },
+          "responsible_id": {
+            "description": "Employee ID of the responsible person. Use only when a previous tool already returned it. Prefer responsible_name.",
+            "type": "integer"
+          },
+          "responsible_name": {
+            "description": "Person responsible for the goal (partial name match). Defaults to the caller. Admins can assign any active employee who is not external. Other people can assign themselves and employees they manage for goals.",
             "type": "string"
           },
           "start_on": {
@@ -1656,7 +1664,7 @@
     },
     {
       "name": "edit_goal",
-      "description": "Edit a goal. Find by name using 'find_by_name' (partial match, case-insensitive) or by goal_id\nfrom a previous tool response. If multiple goals match, present options to the user.\nOnly changed fields are updated — omitted fields stay unchanged.\nMetrics: omit ID to add new, include ID to update, set _destroy to remove.\nIf you don't have the goal_id and can't identify the goal by name, FIRST call list_goals to find it, THEN call edit_goal.\n",
+      "description": "Edit a goal. Find by name using 'find_by_name' (partial match, case-insensitive) or by goal_id\nfrom a previous tool response. If multiple goals match, present options to the user.\nOnly changed fields are updated — omitted fields stay unchanged.\nPass responsible_name to reassign the goal. Admins can assign any active employee who is not\nexternal. The current responsible, and the creator when they manage that person for goals, can\nassign themselves and employees they manage for goals.\nMetrics: omit ID to add new, include ID to update, set _destroy to remove.\nIf you don't have the goal_id and can't identify the goal by name, FIRST call list_goals to find it, THEN call edit_goal.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -1710,6 +1718,14 @@
           },
           "name": {
             "description": "Goal name",
+            "type": "string"
+          },
+          "responsible_id": {
+            "description": "Employee ID of the new responsible person. Use only when a previous tool already returned it. Prefer responsible_name.",
+            "type": "integer"
+          },
+          "responsible_name": {
+            "description": "Reassign the goal to this person (partial name match). Admins can assign any active employee who is not external. The current responsible, and the creator when they manage that person for goals, can assign themselves and employees they manage for goals.",
             "type": "string"
           },
           "start_on": {

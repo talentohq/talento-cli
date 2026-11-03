@@ -2,7 +2,7 @@
   "contract_version": 1,
   "role": "external",
   "captured_at": null,
-  "snapshot_sha256": "757b3c524e4fefce4e5e3fb236b6f4fe7f2c18761aabb3fd6202cbeecd82d3df",
+  "snapshot_sha256": "54d47760c49e9029c0d7fc607b7cb2dccc57dd2a09ada68430d778e8817f8b40",
   "tenant": "staging-company-b-selected",
   "modules": ["finance"],
   "representative_tools": ["list_invoices", "list_purchase_invoices", "list_providers"],

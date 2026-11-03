@@ -31,6 +31,11 @@ subset, and the live result decides the boundary.
 - Personal todos (`talento todos …`) are private to the current user. Managers never see them.
 - Do not call `talento tasks create-task` with a goal name; the gateway rejects that and
   tells you to use `create_goal_action`.
+- `talento goals list` defaults to goals you are responsible for. A goal you created for someone
+  else is not in that list. Use `--scope all`, or `--employee-name` for the person responsible.
+- `talento goals create` and `talento goals update` save immediately. You are the responsible
+  person unless you pass `--responsible-name`. You can name yourself or someone you manage for
+  goals. Prefer the name over `--responsible-id`.
 - Use names and the returned context to update the intended record; resolve ambiguity first.
 - Treat training visibility and authoring commands as server-authoritative. An employee may be able
   to discover or take training without being allowed to author it.

@@ -53,6 +53,13 @@ admin-wide access; inspect the live catalogue and the applied scope.
 - Candidate skills are catalog skills recorded on that person, with an obtained date and optional
   notes. Add, update, and remove them by skill name. A detailed candidate listing shows each entry.
 - Goal actions are checklists on a goal, not project tasks. List them before adding a duplicate.
+- `talento goals list` scope `mine` is goals the caller is responsible for. A goal handed to
+  someone else shows up under that person (`--employee-name`) or in `--scope all`. A detailed row
+  names the creator and the responsible person.
+- `talento goals create` and `talento goals update` commit on the call. `--responsible-name` assigns
+  who is responsible. Admins can assign any active employee who is not external. The current
+  responsible, and the creator when they manage that person for goals, can assign themselves and
+  people they manage for goals. Prefer the name over `--responsible-id`.
 - Training authoring has draft, review, requested-changes, published, and archived lifecycle states.
   Use the available lifecycle command and report the returned state; do not claim publication from a
   review submission. Returning a published course to draft is a lifecycle write, not a delete.

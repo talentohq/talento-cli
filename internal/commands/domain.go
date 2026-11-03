@@ -88,6 +88,7 @@ var domainExamples = map[string]string{
 	"absences": `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30
   talento absences create --input-file request.json`,
 	"goals": `  talento goals list --name Q3
+  talento goals create --name "Increase retention" --responsible-name "Ana López"
   talento goals list-actions --goal-name "Increase retention"`,
 	"reports": `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
 	"trainings": `  talento trainings list --name onboarding --json
@@ -102,6 +103,8 @@ var toolExamples = map[string]string{
 	"create_employee":         `  talento people create --name "Ana López" --email ana@example.com --office-name Madrid --team-name Engineering`,
 	"get_current_datetime":    `  talento time now --agent`,
 	"list_goal_actions":       `  talento goals list-actions --goal-name "Increase retention"`,
+	"create_goal":             `  talento goals create --name "Increase retention" --responsible-name "Ana López"`,
+	"edit_goal":               `  talento goals update --find-by-name "Increase retention" --responsible-name "Ana López"`,
 	"create_goal_action":      `  talento goals create-action --name "Draft survey" --goal-name "Increase retention"`,
 	"list_absences":           `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30 --status approved`,
 	"create_changelog":        `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,

@@ -1,5 +1,20 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `talento goals create` and `talento goals update` accept `--responsible-name` and
+  `--responsible-id`. The caller stays responsible unless a name is set. Admins can assign any
+  active employee who is not external. Other people can assign themselves and employees they
+  manage for goals. Prefer the name. Both commands still save immediately.
+
+### Changed
+
+- `talento goals list` treats scope `mine` as goals the caller is responsible for. `--employee-name`
+  filters by that person. A goal created for someone else appears under their name or with
+  `--scope all`. Detailed output names the creator and the responsible person.
+
 ## [1.0.10] - 2026-10-30
 
 ### Added
