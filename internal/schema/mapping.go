@@ -54,6 +54,8 @@ func domainFor(name string) string {
 		return "surveys"
 	case strings.Contains(name, "competenc") || strings.Contains(name, "skill"):
 		return "skills"
+	case name == "manage_visibility":
+		return "visibility"
 	case strings.Contains(name, "goal"):
 		return "goals"
 	case strings.Contains(name, "personal_todo"):
@@ -154,6 +156,7 @@ var commandOverrides = map[string]string{
 	"list_goals":                           "list",
 	"create_goal":                          "create",
 	"edit_goal":                            "update",
+	"manage_visibility":                    "manage",
 	"list_goal_comments":                   "comments",
 	"create_goal_status_update":            "status-update",
 	"list_skills":                          "list",

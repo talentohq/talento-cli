@@ -25,7 +25,7 @@ const (
 
 var plannedDomains = []string{
 	"people", "time", "absences", "expenses", "schedules", "appointments",
-	"projects", "tasks", "todos", "documents", "goals", "skills", "evaluations",
+	"projects", "tasks", "todos", "documents", "goals", "visibility", "skills", "evaluations",
 	"surveys", "trainings", "recruitment", "onboarding", "meetings", "crm", "customers",
 	"contacts", "leads", "opportunities", "invoices", "purchases", "providers",
 	"items", "views", "reports",
@@ -43,6 +43,7 @@ var domainDescriptions = map[string]string{
 	"todos":         "Manage the current user's private personal todos.",
 	"documents":     "Create documents and inspect document categories.",
 	"goals":         "List goals, comments, status updates, and goal actions.",
+	"visibility":    "Read or change who can see a goal or a project.",
 	"skills":        "Work with skills and competency frameworks.",
 	"evaluations":   "Create evaluations, choose who is evaluated and who evaluates, and inspect results.",
 	"surveys":       "Create surveys, choose who receives them and when, and inspect results.",

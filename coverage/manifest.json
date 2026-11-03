@@ -1,7 +1,7 @@
 {
   "manifest_version": 1,
   "snapshot_version": 1,
-  "snapshot_sha256": "54d47760c49e9029c0d7fc607b7cb2dccc57dd2a09ada68430d778e8817f8b40",
+  "snapshot_sha256": "ade4ef26d45f410dc156a3eeab51920e6a5e9b23ce04b4a78279f0ee108d4fdc",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
     {
@@ -218,6 +218,12 @@
       "tool": "edit_goal",
       "domain": "goals",
       "command": "update",
+      "read_only": false
+    },
+    {
+      "tool": "manage_visibility",
+      "domain": "visibility",
+      "command": "manage",
       "read_only": false
     },
     {

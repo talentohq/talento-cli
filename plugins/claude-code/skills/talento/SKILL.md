@@ -26,9 +26,9 @@ Read [references/core.md](references/core.md) before any write, multi-step looku
 Then load only the relevant workflow reference:
 
 - [references/employee.md](references/employee.md) — self-service time, absences, expenses, tasks,
-  todos, goals, and training.
+  todos, goals, who can see a goal or project, and training.
 - [references/manager-hr.md](references/manager-hr.md) — people, schedules, approvals, skills,
-  evaluations, recruitment, onboarding, and training administration.
+  evaluations, recruitment, onboarding, training, and who can see a goal or project.
 - [references/surveys.md](references/surveys.md) — write a survey, choose who receives it, and turn it on.
 - [references/evaluations.md](references/evaluations.md) — write a performance evaluation from existing competencies or new ones, choose who is evaluated and who evaluates, and turn it on.
 - [references/sales.md](references/sales.md) — customers, contacts, leads, opportunities, and CRM.

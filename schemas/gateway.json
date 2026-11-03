@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-11-03T12:00:00Z",
+  "generated_at": "2026-11-03T15:30:00Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -1749,6 +1749,124 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "manage_visibility",
+      "description": "Read or change who can see an existing goal or project. New goals and projects already have a\ndefault audience, so call this only when the user wants to see or change that audience.\n\nA task is seen by whoever can see its project. Pass the project. Surveys and evaluations are\nchanged with update_survey and update_evaluation, which replace the whole audience.\n\nOmit every add and remove argument to read the current audience. Passing any add or remove\nchanges it and leaves every other row in place. add_company shares the record with the whole\ncompany. add_roles uses all_reportees, direct_reportees, team_reportees, office_reportees,\nteam_colleagues, office_colleagues, or company_colleagues. Names are partial matches. An unknown\nor ambiguous name is an error and nothing is saved.\n\nThe person responsible for a goal always stays in the audience.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "add_company": {
+            "description": "Share with the whole company. Set true only when the user asked for everyone.",
+            "type": "boolean"
+          },
+          "add_employees": {
+            "description": "Employee names to add to the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "add_offices": {
+            "description": "Office names to add to the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "add_roles": {
+            "description": "Relative audiences to add: all_reportees, direct_reportees, team_reportees, office_reportees, team_colleagues, office_colleagues, company_colleagues.",
+            "items": {
+              "enum": [
+                "all_reportees",
+                "direct_reportees",
+                "team_reportees",
+                "office_reportees",
+                "team_colleagues",
+                "office_colleagues",
+                "company_colleagues"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "add_teams": {
+            "description": "Team names to add to the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "record_id": {
+            "description": "Id of the goal or project. Use only when a previous tool already returned it.",
+            "type": "integer"
+          },
+          "record_name": {
+            "description": "Name of the goal or project (partial match). Prefer this over record_id.",
+            "type": "string"
+          },
+          "record_type": {
+            "description": "goal or project. A task follows its project. Surveys and evaluations use their own tools.",
+            "enum": [
+              "goal",
+              "project"
+            ],
+            "type": "string"
+          },
+          "remove_company": {
+            "description": "Stop sharing with the whole company.",
+            "type": "boolean"
+          },
+          "remove_employees": {
+            "description": "Employee names to remove from the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "remove_offices": {
+            "description": "Office names to remove from the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "remove_roles": {
+            "description": "Relative audiences to remove.",
+            "items": {
+              "enum": [
+                "all_reportees",
+                "direct_reportees",
+                "team_reportees",
+                "office_reportees",
+                "team_colleagues",
+                "office_colleagues",
+                "company_colleagues"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "remove_teams": {
+            "description": "Team names to remove from the audience.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "record_type"
+        ],
         "type": "object"
       },
       "annotations": {

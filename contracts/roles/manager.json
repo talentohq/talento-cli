@@ -2,7 +2,7 @@
   "contract_version": 1,
   "role": "manager",
   "captured_at": null,
-  "snapshot_sha256": "54d47760c49e9029c0d7fc607b7cb2dccc57dd2a09ada68430d778e8817f8b40",
+  "snapshot_sha256": "ade4ef26d45f410dc156a3eeab51920e6a5e9b23ce04b4a78279f0ee108d4fdc",
   "tenant": "staging-company-a",
   "modules": ["people", "time", "talent"],
   "representative_tools": ["list_employees", "list_absences", "manage_schedule", "create_goal", "list_trainings"],

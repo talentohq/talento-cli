@@ -36,6 +36,21 @@ subset, and the live result decides the boundary.
 - `talento goals create` and `talento goals update` save immediately. You are the responsible
   person unless you pass `--responsible-name`. You can name yourself or someone you manage for
   goals. Prefer the name over `--responsible-id`.
+- `talento visibility manage` reads or changes who can see a goal or a project. Pass
+  `--record-type goal` or `--record-type project` and `--record-name`. Leave off every add and
+  remove flag to read the audience. Any add or remove flag changes that audience and leaves the
+  other rows. It saves immediately. You can change it only when Talento lets you modify that record.
+- A task is seen by whoever can see its project. Pass the project.
+- The person responsible for a goal always stays in the audience. An unknown or ambiguous name
+  saves nothing.
+- Add offices, teams, or people by name with `--add-offices-item`, `--add-teams-item`, and
+  `--add-employees-item`. Remove them the same way. `--add-roles-item` takes `all_reportees`,
+  `direct_reportees`, `team_reportees`, `office_reportees`, `team_colleagues`, `office_colleagues`,
+  or `company_colleagues`. `--add-company` shares the record with the whole company, and only when
+  the user asked for everyone.
+- Change a survey audience with `talento surveys update`, and an evaluation audience with
+  `talento evaluations update`. Those commands replace the whole audience. Sales invoices stay on
+  the invoice commands.
 - Use names and the returned context to update the intended record; resolve ambiguity first.
 - Treat training visibility and authoring commands as server-authoritative. An employee may be able
   to discover or take training without being allowed to author it.

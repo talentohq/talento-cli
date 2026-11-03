@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `talento visibility manage` reads or changes who can see a goal or a project.
+  Leave off the add and remove flags to read the audience. Any add or remove flag
+  updates that audience and leaves the other rows. A task is seen with its project.
+  The person responsible for a goal stays in the audience. The change is saved immediately.
+
 ## [1.0.11] - 2026-11-03
 
 ### Added

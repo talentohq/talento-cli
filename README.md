@@ -239,7 +239,7 @@ talento people list --help
 ```
 
 The generated domains are `people`, `time`, `absences`, `expenses`, `schedules`, `appointments`,
-`projects`, `tasks`, `todos`, `documents`, `goals`, `skills`, `evaluations`, `surveys`, `trainings`,
+`projects`, `tasks`, `todos`, `documents`, `goals`, `visibility`, `skills`, `evaluations`, `surveys`, `trainings`,
 `recruitment`, `onboarding`, `meetings`, `crm`, `customers`, `contacts`, `leads`, `opportunities`, `invoices`,
 `purchases`, `providers`, `items`, `views`, and `reports`.
 

@@ -90,6 +90,8 @@ var domainExamples = map[string]string{
 	"goals": `  talento goals list --name Q3
   talento goals create --name "Increase retention" --responsible-name "Ana López"
   talento goals list-actions --goal-name "Increase retention"`,
+	"visibility": `  talento visibility manage --record-type goal --record-name "Increase retention"
+  talento visibility manage --record-type project --record-name Website --add-teams-item Sales`,
 	"reports": `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
 	"trainings": `  talento trainings list --name onboarding --json
   talento trainings get --training-id 42`,
@@ -105,6 +107,7 @@ var toolExamples = map[string]string{
 	"list_goal_actions":       `  talento goals list-actions --goal-name "Increase retention"`,
 	"create_goal":             `  talento goals create --name "Increase retention" --responsible-name "Ana López"`,
 	"edit_goal":               `  talento goals update --find-by-name "Increase retention" --responsible-name "Ana López"`,
+	"manage_visibility":       `  talento visibility manage --record-type goal --record-name "Increase retention" --add-employees-item "Ana López"`,
 	"create_goal_action":      `  talento goals create-action --name "Draft survey" --goal-name "Increase retention"`,
 	"list_absences":           `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30 --status approved`,
 	"create_changelog":        `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,

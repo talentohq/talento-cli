@@ -60,6 +60,21 @@ admin-wide access; inspect the live catalogue and the applied scope.
   who is responsible. Admins can assign any active employee who is not external. The current
   responsible, and the creator when they manage that person for goals, can assign themselves and
   people they manage for goals. Prefer the name over `--responsible-id`.
+- `talento visibility manage` reads or changes who can see a goal or a project. `--record-type` is
+  `goal` or `project`. Prefer `--record-name`. With no add or remove flag, it reads the audience.
+  Any add or remove flag updates that audience and leaves every other row. It saves immediately.
+  Reading needs access to the record. Changing it needs permission to modify that goal or project.
+- Add offices, teams, or people by name with `--add-offices-item`, `--add-teams-item`, and
+  `--add-employees-item`. Remove them the same way. `--add-roles-item` takes `all_reportees`,
+  `direct_reportees`, `team_reportees`, `office_reportees`, `team_colleagues`, `office_colleagues`,
+  or `company_colleagues`. `--add-company` shares the record with the whole company. Use it only
+  when the user asked for everyone.
+- A task is seen by whoever can see its project. Pass the project. The person responsible for a
+  goal cannot be removed. An unknown or ambiguous name saves nothing, including the other names in
+  that call.
+- Change a survey audience with `talento surveys update`, and an evaluation audience with
+  `talento evaluations update`. Those commands replace the whole audience. Sales invoices stay on
+  the invoice commands.
 - Training authoring has draft, review, requested-changes, published, and archived lifecycle states.
   Use the available lifecycle command and report the returned state; do not claim publication from a
   review submission. Returning a published course to draft is a lifecycle write, not a delete.
