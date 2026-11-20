@@ -85,13 +85,13 @@ func TestHelpGroupsTopicsAndExamples(t *testing.T) {
 		"Get started:", "Talento work:", "Discovery and raw MCP:",
 		"Coding-agent integration:", "Maintenance and shell support:",
 		"Additional help topics:", "talento output", "talento exit-codes",
-		"talento people list --name Ana", "projects      Discover project capabilities",
+		"talento people list --name Ana", "projects      List, create, update, and delete projects.",
 	} {
 		if !strings.Contains(stdout.String(), want) {
 			t.Fatalf("root help lacks %q:\n%s", want, stdout.String())
 		}
 	}
-	if strings.Contains(stdout.String(), "talento projects    Discover") {
+	if strings.Contains(stdout.String(), "talento projects    List, create") {
 		t.Fatalf("projects domain was presented as a help topic:\n%s", stdout.String())
 	}
 

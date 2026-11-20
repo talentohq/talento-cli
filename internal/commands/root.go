@@ -38,7 +38,7 @@ var domainDescriptions = map[string]string{
 	"expenses":      "List and file employee expenses.",
 	"schedules":     "Inspect and maintain schedules, shifts, assignments, reschedules, and swaps.",
 	"appointments":  "Work with booking calendars and appointments.",
-	"projects":      "Discover project capabilities exposed by the current Talento profile.",
+	"projects":      "List, create, update, and delete projects.",
 	"tasks":         "List and update project tasks and checklists.",
 	"todos":         "Manage the current user's private personal todos.",
 	"documents":     "Create documents and inspect document categories.",

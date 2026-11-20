@@ -52,7 +52,22 @@ admin-wide access; inspect the live catalogue and the applied scope.
   required. The first step is used when no step is named.
 - Candidate skills are catalog skills recorded on that person, with an obtained date and optional
   notes. Add, update, and remove them by skill name. A detailed candidate listing shows each entry.
+- `talento projects list` lists the projects the caller can see. There is no separate get command.
+  Pass `--id` or `--response-format detailed` to read one. Archived projects stay hidden unless
+  `--status` includes `archived`. A name of 2 characters or fewer does not filter the list.
+- `talento projects create` and `talento projects update` save immediately. Name is required on
+  create; the caller becomes the creator. On update, prefer `--find-by-name`. Only passed fields
+  change. A blank `--description` or `--end-on` clears that field. A blank `--start-on` is ignored.
+  `--status archived` archives the project. Tags replace the whole list. Do not pass progress.
+  Changing the dates can rewrite the status: an end date in the past becomes archived, and a range
+  that includes today becomes active. Several matches save nothing.
+- `talento projects delete` returns a preview. Nothing is deleted until `talento action confirm`.
+  Deleting the project deletes its task lists, its tasks, and those tasks' comments, assignments,
+  and tags. Clock-ins on those tasks stay and lose the task. The project's comments, audience, and
+  calendar booking are deleted too. An ambiguous name previews nothing.
 - Goal actions are checklists on a goal, not project tasks. List them before adding a duplicate.
+- If the user named the project, pass `--project-name` on `talento tasks create-task`. If they did
+  not, list projects first. Never ask for an id.
 - `talento goals list` scope `mine` is goals the caller is responsible for. A goal handed to
   someone else shows up under that person (`--employee-name`) or in `--scope all`. A detailed row
   names the creator and the responsible person.

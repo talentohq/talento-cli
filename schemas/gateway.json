@@ -1,6 +1,6 @@
 {
   "snapshot_version": 1,
-  "generated_at": "2026-11-03T15:30:00Z",
+  "generated_at": "2026-11-20T18:50:02Z",
   "source": "talento Rails gateway",
   "endpoint": "https://mcp.talentohq.com/mcp",
   "tools": [
@@ -5797,7 +5797,7 @@
     },
     {
       "name": "create_task",
-      "description": "Create a task within a project.\nUse when the user wants to add a task, todo, or work item to a project.\nFor a checklist on a goal use `create_goal_action`. For a private personal list use `create_personal_todo`.\n\nTasks always belong to a project — resolve it by name.\nTasks are placed in a task list (like a column in a kanban board). Default: first list in the project.\nThe current user is set as the task creator. Additional employees can be assigned.\n\nTask dates must fall within the project's date range.\nIf the project has lists like 'Pending', 'In Progress', 'Done', use task_list_name to place the task.\n\nExamples:\n- \"add a task to the Marketing project\" → project_name=\"Marketing\", name=\"[from user context]\"\n- \"create a task for Maria in Project X\" → project_name=\"Project X\", assigned_employees=[\"Maria\"]\n- \"add a task to the Done list\" → task_list_name=\"Done\" (if list has mark_as_completed, progress auto-sets to 100)\n\nThis tool creates the task and optionally assigns employees (who receive a notification).\nThe task starts with progress 0 unless placed in a list that auto-completes.\n",
+      "description": "Create a task within a project.\nUse when the user wants to add a task, todo, or work item to a project.\nFor a checklist on a goal use `create_goal_action`. For a private personal list use `create_personal_todo`.\n\nTasks always belong to a project. If the user named the project, pass project_name. If they did not, call list_projects first. Never ask the user for an id.\nTasks are placed in a task list (like a column in a kanban board). Default: first list in the project.\nThe current user is set as the task creator. Additional employees can be assigned.\n\nTask dates must fall within the project's date range.\nIf the project has lists like 'Pending', 'In Progress', 'Done', use task_list_name to place the task.\n\nExamples:\n- \"add a task to the Marketing project\" → project_name=\"Marketing\", name=\"[from user context]\"\n- \"create a task for Maria in Project X\" → project_name=\"Project X\", assigned_employees=[\"Maria\"]\n- \"add a task to the Done list\" → task_list_name=\"Done\" (if list has mark_as_completed, progress auto-sets to 100)\n\nThis tool creates the task and optionally assigns employees (who receive a notification).\nThe task starts with progress 0 unless placed in a list that auto-completes.\n",
       "inputSchema": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "additionalProperties": false,
@@ -5841,7 +5841,7 @@
             "type": "integer"
           },
           "project_name": {
-            "description": "Name of the project (partial match, resolved internally). Just pass the name — do NOT search for projects first. Task MUST belong to a project.",
+            "description": "Name of the project (partial match, resolved internally). If the user named the project, pass it here. If they did not, call list_projects first. Never ask the user for an id.",
             "type": "string"
           },
           "start_on": {
@@ -5949,6 +5949,205 @@
           "task_name": {
             "description": "Task name (partial match).",
             "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "list_projects",
+      "description": "List projects the current user can see. There is no separate get tool: pass id, or response_format=detailed, to read one project.\nArchived projects are hidden unless status includes archived.\nA name of 2 characters or fewer is ignored and does not filter the list.\nName match is partial and ignores accents. Results are ordered by name.\nProjects have no owner filter: this is every project the user can see, not a team or office slice.\nFor tasks on a project use list_employee_tasks, create_task, or update_task.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "One project id from a previous tool response. Includes archived projects.",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Partial project name. Ignored when it has 2 characters or fewer.",
+            "type": "string"
+          },
+          "response_format": {
+            "description": "concise is name, status, progress, and end date. detailed adds description, dates, tags, budgets, creator, pending tasks, and a system id.",
+            "enum": [
+              "concise",
+              "detailed"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "description": "Statuses to include. Omit to hide archived projects. Pass archived to see archived projects.",
+            "items": {
+              "enum": [
+                "planning",
+                "active",
+                "archived"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      }
+    },
+    {
+      "name": "create_project",
+      "description": "Create a project. Only the name is required. The caller becomes the creator.\nDefaults: start_on is today, status is planning. The project gets four task lists.\nChanging the dates can rewrite the status: an end date in the past is archived, and a range that includes today is active.\nDo not pass progress. It is not an input.\nReturns the project and its task list names. Add work with create_task.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "description": "Project description as plain text.",
+            "type": "string"
+          },
+          "end_on": {
+            "description": "End date (YYYY-MM-DD). Must be on or after start_on.",
+            "format": "date",
+            "type": "string"
+          },
+          "max_cost": {
+            "description": "Cost budget.",
+            "type": "integer"
+          },
+          "max_hours": {
+            "description": "Hour budget.",
+            "type": "integer"
+          },
+          "name": {
+            "description": "Project name.",
+            "type": "string"
+          },
+          "start_on": {
+            "description": "Start date (YYYY-MM-DD). Default: today.",
+            "format": "date",
+            "type": "string"
+          },
+          "status": {
+            "description": "planning, active, or archived. Default: planning, unless the dates rewrite it.",
+            "enum": [
+              "planning",
+              "active",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "description": "Tags. Replaces nothing on create; this is the full list.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "edit_project",
+      "description": "Edit a project the caller is allowed to change. Find it by project_id or find_by_name (partial, accents ignored).\nIf several projects match, nothing is saved. Ask which one and call again.\nOnly passed fields change. Pass a blank description or end_on to clear it. A blank start_on is ignored. Tags, when passed, replace the whole list.\nstatus=archived archives the project. There is no separate archive tool.\nChanging start_on or end_on can rewrite the status: an end date in the past becomes archived, and a range that includes today becomes active.\nDo not pass progress. It is not an input.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "description": "New description as plain text. Pass an empty string to clear it.",
+            "type": "string"
+          },
+          "end_on": {
+            "description": "New end date (YYYY-MM-DD). Pass an empty string to clear it. Must be on or after start_on.",
+            "format": "date",
+            "type": "string"
+          },
+          "find_by_name": {
+            "description": "Partial project name. Prefer this over project_id when the user named it.",
+            "type": "string"
+          },
+          "max_cost": {
+            "description": "Cost budget.",
+            "type": "integer"
+          },
+          "max_hours": {
+            "description": "Hour budget.",
+            "type": "integer"
+          },
+          "name": {
+            "description": "New name.",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "Project id from a previous tool response.",
+            "type": "integer"
+          },
+          "start_on": {
+            "description": "New start date (YYYY-MM-DD). A blank value is ignored. A project keeps its start date.",
+            "format": "date",
+            "type": "string"
+          },
+          "status": {
+            "description": "planning, active, or archived. archived is how you archive.",
+            "enum": [
+              "planning",
+              "active",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "tags": {
+            "description": "Full tag list. Replaces the current tags.",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "delete_project",
+      "description": "Delete a project the caller is allowed to change, after a preview. Nothing is deleted until confirm_action.\nFind it by project_id or find_by_name (partial, accents ignored). If several match, nothing is previewed.\nDeleting the project deletes its task lists, its tasks, and those tasks' comments, assignments, and tags.\nClock-ins on those tasks stay and lose the task. The project's comments, audience, and calendar booking are deleted too.\n",
+      "inputSchema": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "find_by_name": {
+            "description": "Partial project name. Prefer this over project_id when the user named it.",
+            "type": "string"
+          },
+          "project_id": {
+            "description": "Project id from a previous tool response.",
+            "type": "integer"
           }
         },
         "type": "object"

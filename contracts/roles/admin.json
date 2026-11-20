@@ -2,7 +2,7 @@
   "contract_version": 1,
   "role": "admin",
   "captured_at": null,
-  "snapshot_sha256": "ade4ef26d45f410dc156a3eeab51920e6a5e9b23ce04b4a78279f0ee108d4fdc",
+  "snapshot_sha256": "2bf2c0e6db636c93e9a868c81e6577afaf8022cfad4708295f2dbfcb0a369d01",
   "tenant": "staging-company-a",
   "modules": ["people", "time", "talent", "crm", "finance"],
   "representative_tools": ["list_employees", "create_absence", "manage_schedule", "create_training", "create_customer", "create_invoice", "confirm_action"],

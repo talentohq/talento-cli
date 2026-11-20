@@ -62,6 +62,8 @@ func domainFor(name string) string {
 		return "todos"
 	case strings.Contains(name, "task"):
 		return "tasks"
+	case name == "list_projects" || name == "create_project" || name == "edit_project" || name == "delete_project":
+		return "projects"
 	case strings.Contains(name, "absence"):
 		return "absences"
 	case strings.Contains(name, "expense"):
@@ -156,6 +158,10 @@ var commandOverrides = map[string]string{
 	"list_goals":                           "list",
 	"create_goal":                          "create",
 	"edit_goal":                            "update",
+	"list_projects":                        "list",
+	"create_project":                       "create",
+	"edit_project":                         "update",
+	"delete_project":                       "delete",
 	"manage_visibility":                    "manage",
 	"list_goal_comments":                   "comments",
 	"create_goal_status_update":            "status-update",

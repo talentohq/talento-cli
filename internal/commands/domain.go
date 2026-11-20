@@ -92,6 +92,10 @@ var domainExamples = map[string]string{
   talento goals list-actions --goal-name "Increase retention"`,
 	"visibility": `  talento visibility manage --record-type goal --record-name "Increase retention"
   talento visibility manage --record-type project --record-name Website --add-teams-item Sales`,
+	"projects": `  talento projects list --name Website
+  talento projects create --name Website
+  talento projects update --find-by-name Website --status archived
+  talento projects delete --find-by-name Website`,
 	"reports": `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,
 	"trainings": `  talento trainings list --name onboarding --json
   talento trainings get --training-id 42`,
@@ -108,6 +112,10 @@ var toolExamples = map[string]string{
 	"create_goal":             `  talento goals create --name "Increase retention" --responsible-name "Ana López"`,
 	"edit_goal":               `  talento goals update --find-by-name "Increase retention" --responsible-name "Ana López"`,
 	"manage_visibility":       `  talento visibility manage --record-type goal --record-name "Increase retention" --add-employees-item "Ana López"`,
+	"list_projects":           `  talento projects list --name Website --response-format detailed`,
+	"create_project":          `  talento projects create --name Website --start-on 2026-11-20`,
+	"edit_project":            `  talento projects update --find-by-name Website --status archived`,
+	"delete_project":          `  talento projects delete --find-by-name Website`,
 	"create_goal_action":      `  talento goals create-action --name "Draft survey" --goal-name "Increase retention"`,
 	"list_absences":           `  talento absences list --start-date 2026-09-01 --end-date 2026-09-30 --status approved`,
 	"create_changelog":        `  talento reports create-changelog --title "Weekly update" --content "Completed onboarding"`,

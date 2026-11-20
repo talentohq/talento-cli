@@ -25,9 +25,9 @@ the live profile may expose a smaller role- and permission-scoped set.
 Read [references/core.md](references/core.md) before any write, multi-step lookup, or analysis.
 Then load only the relevant workflow reference:
 
-- [references/employee.md](references/employee.md) — self-service time, absences, expenses, tasks,
-  todos, goals, who can see a goal or project, and training.
-- [references/manager-hr.md](references/manager-hr.md) — people, schedules, approvals, skills,
+- [references/employee.md](references/employee.md) — self-service time, absences, expenses, projects,
+  tasks, todos, goals, who can see a goal or project, and training.
+- [references/manager-hr.md](references/manager-hr.md) — people, schedules, approvals, projects, skills,
   evaluations, recruitment, onboarding, training, and who can see a goal or project.
 - [references/surveys.md](references/surveys.md) — write a survey, choose who receives it, and turn it on.
 - [references/evaluations.md](references/evaluations.md) — write a performance evaluation from existing competencies or new ones, choose who is evaluated and who evaluates, and turn it on.

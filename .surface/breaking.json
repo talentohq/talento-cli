@@ -24,6 +24,22 @@
       "before_sha256": "2c004274c789655eee5f0d5c92415d0d3a308a8495bb078a0148219538199198",
       "after_sha256": "absent",
       "reason": "MCP list_schedules no longer accepts response_format."
+    },
+    {
+      "from_version": 14,
+      "to_version": 15,
+      "change_id": "command:talento projects:argument-contract",
+      "before_sha256": "30a0924a3360be687d1df9fcbbfdff62c01bc0fd14036ab9076cf7f451568666",
+      "after_sha256": "62c09d5eee8c9e4f3eaa6b499b0f0c8e4a714b48f1c32b847fcd0c693cd58876",
+      "reason": "The projects domain was a placeholder that rejected arguments. It now has subcommands, so the parent uses the same unrestricted argument contract as the other work domains."
+    },
+    {
+      "from_version": 14,
+      "to_version": 15,
+      "change_id": "command:talento projects:runnable",
+      "before_sha256": "b5bea41b6c623f7c09f1bf24dcae58ebab3c0cdd90ad966bc43a45b44867e12b",
+      "after_sha256": "fcbcf165908dd18a9e49f7ff27810176db8e9f63b4352213741664245224f8aa",
+      "reason": "The projects placeholder printed help itself. With list, create, update, and delete present, the parent is a group command like the other work domains."
     }
   ]
 }

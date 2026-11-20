@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- `talento projects list`, `create`, `update`, and `delete` manage projects. List hides archived
+  projects unless a status asks for them. Create and update save immediately. Delete returns a
+  preview. Archive a project with `update --status archived`.
+
+### Changed
+
+- `talento tasks create-task` tells you to pass the project name when the user named one, and to
+  list projects first when they did not.
+
 ## [1.0.12] - 2026-11-03
 
 ### Added

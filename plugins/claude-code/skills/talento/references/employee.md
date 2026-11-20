@@ -25,7 +25,18 @@ subset, and the live result decides the boundary.
 
 ## Tasks, todos, goals, and learning
 
+- `talento projects list` is the project list. There is no separate get command. Pass `--id` or
+  `--response-format detailed` to read one project. Archived projects stay hidden unless `--status`
+  includes `archived`. A name of 2 characters or fewer does not filter the list.
+- `talento projects create` and `talento projects update` save immediately. Only the name is
+  required on create. On update, prefer `--find-by-name`. Only the fields you pass change. A blank
+  `--description` or `--end-on` clears that field. `--status archived` archives the project. Tags
+  replace the whole list. Do not pass progress. Dates can rewrite the status.
+- `talento projects delete` returns a preview. Nothing is deleted until `talento action confirm`.
+  An ambiguous name previews nothing.
 - Project tasks (`talento tasks …`) belong to a project. They are not goal checklists.
+- If the user named the project, pass `--project-name` on `talento tasks create-task`. If they did
+  not, list projects first. Never ask for an id.
 - Goal actions (`talento goals list-actions|create-action|update-action|delete-action`) are
   checklist items on a goal. Use them when the user wants to break a goal into simple todos.
 - Personal todos (`talento todos …`) are private to the current user. Managers never see them.
